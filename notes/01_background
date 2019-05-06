@@ -1,0 +1,317 @@
+--------------------------------------------------------
+PART 1 - BACKGROUND
+--------------------------------------------------------
+
+- Big Data and Analytics
+
+    - Data Lake = Volume
+      Waterfall = Velocity
+      Recreation = Data Variation
+
+
+    - Big Data = Volume, Velocity, Variability
+        - The internet created this situation
+        - Audio, video, photos, logs, click trails, IoT, text messages/emails/tweets, 
+            documents, books, research data, stock transactions, customer data,
+            public records, human genome, ...
+
+
+    - Hadoop
+        - Large Clusters
+        - Large File Systems
+        - Parallel Processing with MapReduce
+
+
+    - Data Warehouse
+          Source -> ETL (Discards Unneeded data) -> DataWarehouse (Schema On Write)
+      Data Lake
+          Source -> Data Lake -> Hadoop (Schema and ETL on Read)
+
+
+    - Hadoop History
+        - Developed at Yahoo
+        - Based on Google MapReduce and BigTable
+        - Designed to handle large amounts of data and be robust
+        - Donated to ASF in 2006
+
+
+    - Use Case Examples
+        - NextBio uses MapReduce and HBase to process multi-terabyte datasets of human 
+            genome data.
+        - UsExpress uses Hadoop to store truck sensor data and process it in real time,
+            joining it with geo data, weather data, etc
+        - Retail Bank uses Hadoop to validate data accuracy to comply with Dodd-Frank,
+            analyzes trillions of records per month
+
+
+
+- Hadoop as a Data Platform
+
+    - Hadoop Platform
+        - Most tools are open source
+        - Large (petabyte) unstructured data sets
+        - Written in Java
+        - Primarily runs on Linux
+        - Scalable from single server to thousands of machines
+        - Runs on commodity hardware and in cloud
+        - Application-level fault tolerance is possible
+        - Multiple processing models, including traditional MapReduce
+
+
+    - Traditional Hadoop Components
+
+          Pig(Script)   Hive(Query)
+             HCatalog (Metadata)
+       MapReduce (Distributed Processing)
+       YARN (Resource Scheduling and Negotiation)
+            HDFS (Distributed Storage)
+
+
+    - HDFS = Hadoop Distributed File System
+        - Fault-tolerant streaming file system
+        - Default block size of 64MB (vs 4KB on Linux ext4)
+        - Master 'NameNode' and multiple 'DataNodes'
+        - Data is replicated on multiple servers.
+
+    - YARN = Yet Another Resource Negotiator
+        - Master scheduler and resource allocator for entire cluster
+        - User jobs ask YARN for resources (containers = CPU and memory) and data locality
+        - Provides run-time resource allocation
+        - Master 'ResourceManager' and multiple 'NodeManagers'
+
+    - MapReduce
+        - YARN application
+        - Provides traditional MapReduce processing
+
+    - Most nodes in the Hadoop Cluster are both DataNodes and NodeManagers
+       (This facilitates the Hadoop design principle of moving computation to data rather
+          than moving data to computation.)	
+
+
+    - Other Common Components
+
+        - Pig = high-level language for creating MapReduce jobs
+
+        - Hive = data warehouse infrastructure built on top of Hadoop
+            - Data Summarization
+            - Ad-hoc queries using SQL-like language HiveQL
+
+        - HCatalog = table and storage management service
+
+        - HBase = distributed and scalable column-oriented DB
+
+        - ZooKeeper = centralized service used to maintain configuration between nodes
+
+        - Ambari = provisioning, managing, and monitoring clusters
+
+        - Oozie = workflow/coordination system to manage multistage Hadoop jobs
+
+        - Avro = RPC and serialization framework
+
+        - Apache Cassandra = distributed DB designed to handle large amounts of data
+            - Can be used with or without Hadoop
+
+        - Sqoop = transfers bulk data between Hadoop and relational databases
+
+        - Flume = distributed service for collecting, aggretating, and moving log data
+
+
+    - Some things don't quite fit the MapReduce model
+        - Graph processing (ie Apache Giraph)
+        - In-memory computing (ie Apache Spark)
+        - Message passing (High Performance Computing applications)
+        - Real-time (ie Apache Storm)
+
+
+    - Other YARN Frameworks
+        - Batch (MapReduce)
+        - Interactive (Tez)
+        - Online (HBase)
+        - Streaming (Storm)
+        - Graph (Giraph)
+        - In-memory (Spark)
+        - HPC MPI (OpenMPI)
+        - And many others...
+
+
+    - Big 3 Hadoop distribution and service companies
+        - Cloudera
+        - Hortonworks (open source)
+        - MapR
+
+
+
+- MapReduce Basics
+
+    - What is MapReduce?
+
+        For a simple example, think of this Unix command:
+        grep something | wc -l
+
+        Map = grep (search)
+        Reduce = wc (word count)
+
+        MapReduce is a simple algorithm, because it has distinct steps and one-way 
+          communication.
+
+
+    - MapReduce Design Principles
+
+        - Based on single [key, value] pairs
+        - Move computation to the data
+        - Hardware will fail, manage it in software
+        - Hide execution details from the user
+        - Optimize a distributed file system for big blocks and streaming data access
+        - Simple and familiar file system coherency model
+
+
+    - MapReduce Operation
+
+        - Data is loaded into HDFS (it is sliced and stored in a redundant parallel file
+            system).  Then, queries are applied (mapped) to each distributed data set.
+
+        - For example,
+            1. War and Peace is loaded into HDFS.  It is automatically sliced into the 
+                 10 nodes in your Hadoop cluster.
+
+            2. A user query ("How many times is the name 'Kutuzov' mentioned?") is mapped
+                 to all nodes.  Each node produces its own output.  This is the 'Map' step.
+
+            3. The output from each node is collected a reducing function (sum in this case)
+                 and a single number is returned.  This is the 'Reduce' step.
+
+
+    - Native Programming of MapReduce
+
+        - Natively, MapReduce uses Java
+        - Other languages can use a streaming interface (stdin, stdout, text only)
+        - There is a C++ pipes interface
+        - HW faults are handled by automatic restart of tasks
+        - MapReduce applications can scale without changing application
+        - Computation is moved to the server where the data resides
+        - No need to manage side effects or process state
+
+
+
+- Spark Basics
+
+    - Spark History
+
+        - Developed at UC-Berkeley in 2009
+        - Open sourced in 2010 under a BSD license
+        - Donated to ASF in 2013
+        - Independant project from Hadoop
+
+
+    - Advantages of Spark
+
+        - Speed = intermediate results are stored in memory
+        - Languages = built-in APIs in Java, Scala, or Python
+        - Advanced Analyitics = besides Map and Reduce, has SQL queries, streaming
+            data, ML algorithms, graph algorithms, etc.
+
+
+    - 3 Types of Spark Deployments
+
+        1.   Spark
+             HDFS
+             (Standalone)
+
+        2.   Spark
+             YARN/Mesos
+             HDFS
+             (Hadoop)
+
+        3.   Spark
+             Laptop
+             (Standalone)
+
+
+    - Spark Components
+
+        - Spark Core = underlying general execution engine
+
+        - Spark SQL = introduces data abstraction called 'SchemaRDD', which 
+            provides support for structured and unstructured data
+
+        - Spark Streaming = streaming analytics
+
+        - MLlib = distributed machine learning framework
+
+        - GraphX = distributed graph-processing framework
+
+
+    - Spark RDDs
+
+        - Resilient Distributed Datasets (RDD) is a fundamental data structure
+            of Spark
+
+        - Immutable collection of distributed objects
+
+        - Each dataset is divided into logical partitions, which may be computed
+            on different nodes of the cluster
+
+        - RDDs can contain any type of Python, Java, or Scala objects, including 
+            user-defined classes
+
+
+    - Spark Operations - Transformations and Actions
+
+        - RDD Transformations return a pointer to a new RDD.  The original RDD cannot
+            be changed.  Spark is lazy, so nothing will be executed until a 
+            transformation is called.  The transformation tells Spark how to get
+            data and what to do with it.
+
+        - RDD Actions return values (ie collect, count, take, save-as)
+
+
+    - Spark RDDs vs DataFrames
+
+        - An 'RDD' is a blind structure partitioned across the nodes of the cluster and
+            provides many transformation methods, such as 'map()', 'filter()', and 
+            'reduce', each of which returns a new RDD representing the transformed data.
+
+        - The 'DataFrame', similar to a pandas DataFrame, introduces the concept of a
+            schema to manage the data, enabling Spark to manage and optimize computation
+            across the nodes.
+
+
+    - MapReduce vs Spark
+
+        - Spark has the reputation of being faster than MapReduce, because it stores 
+            intermediate results in memory.  However, MapReduce can now use Tez, which
+            can store intermediate results in memory also.
+
+        - Also, if Spark runs out of memory, it will dump intermediate results to disk.
+            Where Spark really shines is the API and ease of programming, more than
+            with enhanced performance.
+
+
+    - Spark Code Example - Estimating Pi
+
+        from pyspark import SparkContext
+        from numpy import random
+        n = 5000000
+
+        def sample(p):
+            x, y = random.random(), random.random()
+            return 1 if x*x + y*y < 1 else 0
+
+        count = sc.parallelize(xrange(0, n))
+                  .map(sample)
+                  .reduce(lambda a, b: return a+b)
+
+        print("Pi is roughly %f" % (4.0 * count / n))
+
+
+
+- Hadoop 3.0 Changes (December 2017)
+
+    - Java 8+ now required
+    - RAID-like 'erasure coding' can reduce the disk space needed by half
+    - New Intra-DataNode balancer balances disks on a single node
+    - 3+ NameNodes can now be used
+    - 'Oppurtunistic containers' can run in the gaps that regular containers aren't using
+    - Containers can now contain addl resources like GPUs, software licenses, local storage
+    - YARN Timeline Service combines yarn logs into a single location
+    - Hadoop shell scripts were rewritten
