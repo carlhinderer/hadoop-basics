@@ -1,0 +1,26 @@
+
+1. Create AWS EC2 instances
+
+      - Step 1: Use the CentOS 7 image
+      - Step 2: Use the t2.xlarge (4 CPUs, 16GB RAM) Instance Type
+      - Step 3: Set 'Number of instances' to 3
+      - Step 4: Choose 100GB Magnetic Storage
+      - Step 5: Add a new tag with Key='Name' and Value='Hadoop Nodes'
+      - Step 6: Create a new security group
+                  - Type = 'Custom TCP'
+                  - Port Range = '0-65535'
+                  - Source = 'Anywhere'
+                  - Description = 'hadoop-nodes'
+      - Step 7: Click 'Launch' and the key pair dialog comes up
+                  - Select 'Create a new key pair'
+                  - Key Pair Name = 'hadoop-cluster'
+                  - Click 'Download Key Pair'
+                  - Then click launch
+
+      - Modify the permissions of the key file downloaded on your machine
+          chmod 400 hadoop-cluster.pem
+
+      - Give a name to each of the servers we created
+          hadoop-ambari-server
+          hadoop-datanode-1
+          hadoop-datanode-2
