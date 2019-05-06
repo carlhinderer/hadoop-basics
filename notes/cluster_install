@@ -85,3 +85,101 @@
 
           # Start NPT at boot
           sudo systemctl disable chronyd.service
+
+
+
+3. Install Prereq Components
+
+      - Copy the private key we created earlier to the ambari server
+
+          # Copy the key from our current machine to ambari server
+          scp -i hadoop-cluster.pem hadoop-cluser.pem centos@13.56.251.229:
+
+          # Verify that the key is there
+          ls
+
+          # Now, we should be able to log into the 2 datanode servers from
+          #   the ambari server (using the private DNS address from the Amazon
+          #   console rather than the public one)
+          ssh -i hadoop-cluster.pem centos@ip-172-31-25-35.us-west-1.compute.internal
+          ssh -i hadoop-cluster.pem centos@ip-172-31-17-22.us-west-1.compute.internal
+
+
+      - Next, we install MySQL on datanode-2.  This is for 2 reasons:
+          1. Ambari will store its configuration here
+          2. Hive will keep its metadata here
+
+          # Install mysql
+          wget http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm
+          sudo rpm -ivh mysql-community-release-el7-5.noarch.rpm
+          sudo yum update
+          sudo yum install mysql-server
+
+          # Start mysql server
+          sudo systemctl start mysqld
+
+          # Set security settings
+          mysql_secure_installation
+          # Set MySql pw = PW
+          # Remove anonymous users - Yes
+          # Disallow root login remotely - Yes
+          # Remove test database and access to it - Yes
+          # Reload privilege tables now - Yes
+
+
+          # Add mysql pw to /tmp/password
+          sudo vi tmp/password
+          # Add this line
+          mysql root password - PW
+
+
+      - Create Database For Oozie
+
+          mysql -u root -p
+          CREATE USER 'oozie'@'%' IDENTIFIED BY 'oozie123';
+          GRANT ALL PRIVILEGES ON *.* TO 'oozie'@'%';
+          FLUSH PRIVILEGES;
+          CREATE DATABASE oozie;
+
+
+      - Create Database For Hive
+
+          mysql -u root -p
+          CREATE USER hive@'%' IDENTIFIED BY 'hive123';
+          GRANT ALL PRIVILEGES ON *.* TO 'hive'@'%';
+          FLUSH PRIVILEGES;
+          CREATE DATABASE hive;
+
+
+      - Create Database For Ranger
+
+          mysql -u root -p
+          CREATE USER ranger@'%' IDENTIFIED BY 'ranger123';
+          GRANT ALL PRIVILEGES ON *.* TO 'ranger'@'%';
+          FLUSH PRIVILEGES;
+
+
+      - Download the mysql connector on the ambari server
+
+          sudo yum install mysql-connector-java*
+
+          # Check to make sure its there
+          ls -lh /usr/share/java/mysql-connector-java.jar
+
+
+      - Install java on the data nodes
+
+          sudo yum install java-1.8.0-openjdk
+
+
+      - Install JCE on the data nodes
+
+          # Download from Oracle onto local machine
+          https://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html
+
+          # scp it to the 2 data nodes
+          scp -i Keys/hadoop-cluster.pem jce_policy-8.zip centos@13.57.198.253:
+          scp -i Keys/hadoop-cluster.pem jce_policy-8.zip centos@54.183.121.66:
+
+          # Unzip the file on the data nodes
+          sudo unzip -o -j -q jce_policy-8.zip -d /etc/java/security
