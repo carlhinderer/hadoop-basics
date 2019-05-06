@@ -24,3 +24,64 @@
           hadoop-ambari-server
           hadoop-datanode-1
           hadoop-datanode-2
+
+
+2. Configure EC2 Instances
+
+      - Connect to each instance
+          ssh -i hadoop-cluster.pem centos@13.56.251.229
+
+      - Update packages on each machine
+          sudo yum update
+
+      - Make centos the superuser on each machine
+          sudo visudo
+
+          # Add this line after 'root ALL=(ALL) ALL'
+          centos ALL=(ALL) ALL
+
+          # Save the file
+
+      - On each machine, verify the hostname
+          hostname -f
+
+      - Edit the network configuration file
+          sudo vi /etc/sysconfig/network
+
+          # Add these pairs
+          NETWORKING=yes
+          NOZEROCONF=yes
+          HOSTNAME=<fqdn>
+
+      - Configure IP tables to disable firewall daemon while we install services
+          sudo systemctl disable firewalld
+          sudo service firewalld stop
+
+      - Install unzip and wget
+          sudo yum install unzip
+          sudo yum install wget
+
+      - Disable SELinux
+          # For current session
+          sudo setenforce 0
+
+          #  Permanent
+          sudo vi /etc/selinux/config
+          # Add this line
+          SELINUX=disabled
+          # Save the file
+
+          # Reboot
+
+          # Grand rwx permissions for new files and folders
+          sudo vi /etc/profile
+          # Add this line at end of file
+          umask 0022
+
+      - Install NTP
+          sudo yum install -y ntp && 
+            sudo systemctl start ntpd && 
+            sudo systemctl enable ntpd
+
+          # Start NPT at boot
+          sudo systemctl disable chronyd.service
