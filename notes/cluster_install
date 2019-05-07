@@ -160,6 +160,15 @@
           CREATE DATABASE ranger;
 
 
+      - Create Database For rangerkms
+
+          mysql -u root -p
+          CREATE USER rangerkms@'%' IDENTIFIED BY 'rangerkms123';
+          GRANT ALL PRIVILEGES ON *.* TO 'rangerkms'@'%';
+          FLUSH PRIVILEGES;
+          CREATE DATABASE rangerkms;
+
+
       - Download the mysql connector on the ambari server
 
           sudo yum install mysql-connector-java*
