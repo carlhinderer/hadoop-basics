@@ -157,6 +157,7 @@
           CREATE USER ranger@'%' IDENTIFIED BY 'ranger123';
           GRANT ALL PRIVILEGES ON *.* TO 'ranger'@'%';
           FLUSH PRIVILEGES;
+          CREATE DATABASE ranger;
 
 
       - Download the mysql connector on the ambari server
@@ -182,4 +183,73 @@
           scp -i Keys/hadoop-cluster.pem jce_policy-8.zip centos@54.183.121.66:
 
           # Unzip the file on the data nodes
-          sudo unzip -o -j -q jce_policy-8.zip -d /etc/java/security
+          sudo unzip -o -j -q jce_policy-8.zip \
+            -d /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.212.b04-0.el7_6.x86_64/jre/lib/security/
+
+
+4. Install and Use Apache Ambari
+
+      - Install ambari on the ambari server
+
+          wget -nv http://public-repo-1.hortonworks.com/ambari/centos7/2.x/updates/2.7.3.0/ambari.repo \ 
+             -O /etc/yum.repos.d/ambari.repo
+
+          sudo yum install ambari-server
+
+          # Set up ambari-server
+          sudo ambari-server setup --jdbc-db=mysql --jdbc-driver=/usr/share/java/mysql-connector-java.jar
+          sudo ambari-server setup
+
+          # Start the ambari server
+          sudo ambari-server start
+
+
+      - Navigate to ambari in your browser
+
+          13.56.251.229:8080
+
+          # Default creds
+          u: admin
+          p: admin
+
+          # Go to 'Users' and change the default admin pw
+
+
+      - Use the cluster install wizard
+
+          - Use public repositories
+
+          - Install Options:
+
+              # Target Hosts (use private DNS names)
+              ip-172-31-17-141.us-west-1.compute.internal
+              ip-172-31-25-35.us-west-1.compute.internal
+              ip-172-31-17-22.us-west-1.compute.internal
+
+              # Private Key
+              Paste from file
+
+              # SSH User Account
+              centos
+
+          - Assign Masters:
+
+              Leave defaults chosen by Ambari, except
+                - Put HiveServer on datanode-2
+                - Put HiveMetastore on datanode-2
+                - Put Oozie Server on datanode-2
+
+          - Assign Slaves and Clients
+
+              Make all machines DataNodes
+              Make all machines NFSGateways
+              Make all machines NodeManagers
+              Make all machines RegionServers (used by HBase)
+              Make all machines Supervisor
+              Make all machines Flume
+              Make all machines Client
+
+              Make datanodes Livy Server
+              Make datanodes Spark Thrift Server
+              Make datanodes Livy For Spark2 Server
+              Make datanodes Spark2 Thrift Server
