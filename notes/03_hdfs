@@ -1,0 +1,75 @@
+--------------------------------------------------------
+PART 3 - HDFS
+--------------------------------------------------------
+
+- HDFS Trade Offs
+
+    - Optimized for streaming reads, poor for random seeks
+    - Write once file system
+    - No local cache needed
+    - With hardware failure, performance will be reduced
+    - Specialized filesystem not designed for general use
+
+
+- NameNode and DataNodes
+
+    - Master/slave model
+    - NameNode = meta data server or 'data traffic cop'
+    - Single namespace managed by NameNode
+    - DataNodes = where the data lives
+    - Secondary NameNode = checkpoints NameNode, but not failover
+
+
+- Roles in HDFS
+
+    - Client requests NameNode to read or write, NameNode returns where to read/write
+    - When clients read/write, it appears as a single filesystem
+    - DataNodes report status back to NameNode, NameNode manages failures
+    - Secondary NameNode checkpoints so that if NameNode goes down, NameNode can use 
+        checkpoint to restart
+
+
+- Filesystem Namespace
+
+    - Traditional hierarchical filesystem with files and directories
+    - Users can create, remove, move, rename, copy (ls, du, mv, cp, rm)
+    - Must use HDFS through Hadoop NameNode, not on individual DataNodes
+    - Don't have permissions, hard or soft links
+
+
+- Block Replication in HDFS
+
+    - Data is broken up into 64MB blocks
+    - Number of machines to replicate a block onto can be set (default is 3)
+
+
+- Client Reading from HDFS
+
+    - 1. HDFS client calls 'Open' to DistributedFileSystem
+
+    - 2. DistributedFileSystem RPC calls NameNode, which returns block locations of data
+           (DataNodes returned are sorted by their proximity to the client)
+
+    - 3. DistributedFileSystem returns a FSDataInputStream
+
+    - 4. Data is streamed from the DataNodes to the FSDataInputStream, one DataNode at a time
+
+    - 5. HDFS client calls 'Close' on FSDataInputStream
+
+
+- Client Writing to HDFS
+
+    - 1. HDFS client calls 'Create' to DistributedFileSystem
+
+    - 2. DistributedFileSystem makes RPC call to NameNode, which returns location to write
+
+    - 3. DistributedFileSystem returns a FSDataOutputStream
+
+    - 4. Data is streamed from the FSDataOutputStream to the DataNodes
+
+    - 5. Once data is written and replicated, the DataNodes send an 'Acknowledge' back to
+           the DistributedFileSystem
+
+    - 6. HDFS Client calls 'Close' on FSDataOutputStream
+
+    - 7. 
