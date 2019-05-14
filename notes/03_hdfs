@@ -72,4 +72,116 @@ PART 3 - HDFS
 
     - 6. HDFS Client calls 'Close' on FSDataOutputStream
 
-    - 7. 
+    - 7. DistributedFileSystem sends 'Complete' message to NameNode
+
+
+
+- Location of HDFS Data
+
+    - To write data to HDFS, 
+        1. Copy the file to the NameNode (now on local disk of NameNode)
+        2. Use HDFS Put to import the data into HDFS
+
+
+- The hdfs Command
+
+    # Using the 'hadoop' command for HDFS is deprecated
+    $ hadoop dfs -ls
+    $ hadoop dfsadmin -report
+
+    # HDFS Commands should now be like this
+    $ hdfs dfs -ls
+    $ hdfs dfsadmin -report
+
+
+- Command-Line Operations
+
+    # List all hdfs dfs subcommands and help
+    $ hdfs dfs
+
+    # Print contents of DistributedFileSystem
+    $ hdfs dfs -ls
+
+
+    # Move file into HDFS from local NameNode file system
+    $ hdfs dfs -put war-and-peace.txt
+
+    # Move file from HDFS into current directory on NameNode
+    $ hdfs dfs -get war-and-peace.txt new-war-and-peace.txt
+
+
+    # Move entire directory into HDFS
+    $ hdfs dfs -put myFiles
+
+
+    # Copy a file in HDFS
+    $ hdfs dfs -cp war-and-peace.txt remove-me.txt
+
+    # Delete files from HDFS
+    $ hdfs dfs -rm remove-me.txt
+
+    # Delete entire directory from HDFS, and skip trash folder
+    $ hdfs dfs -rm -r -skipTrash myFiles
+
+
+    # Make a new directory
+    $ hdfs dfs -mkdir new-directory
+
+
+
+- HDFS Metadata Components
+
+    - The NameNode stores the metadata of the HDFS in memory.  At start up, it reads 
+        this information from a file called 'fsimage'.  Runtime modifications to HDFS are
+        written to an 'edits' log file.  NameNode merges 'fsimage' and 'edits' only on
+        startup.
+
+    - The Checkpoint Node (aka Secondary NameNode) periodically fetches 'fsimage' and 
+        'edits' from the NameNode, merges them, then returns the updated 'fsimage' file
+        to the NameNode.
+
+    - There is a new 'Backup Node' which provides the same functionality as the 
+        Checkpoint Node, but is synchronized using a real-time stream from the DataNode.
+
+
+- HDFS High Availability
+
+    HDFS can now be configured for high availability.
+        - There is an 'Active NameNode' and 'Standby NameNode'
+        - The HDFS state is shared by a set of 'Journal Nodes'
+
+
+- HDFS Federation
+
+    With HDFS Federation, the load is shared across multiple NameNodes.  Each of the NameNodes
+      manages their own namespace, and they do not communicate with each other.  Both NameNodes 
+      manage all the DataNodes.  This can become necessary if there is a very high amount of
+      traffic in the cluster.
+
+      NameNode1 (/research and /marketing)
+      NameNode2 (/data and /project)
+
+
+- HDFS Snapshots
+
+    HDFS Snapshots are read-only point-in-time copies of the file system.
+
+        - Snapshots can be taken on a subtree of the file system or the entire file system
+        - They are used for backup and disaster recovery
+        - Snapshot creation is instantaneous
+        - Blocks are not copied.  Only the block list and file size are recorded.
+        - Do not adversely affect regular HDFS operations
+
+
+- NFSv3 Access to HDFS
+
+    The HDFS NFS Gateway supports NFSv3 and allows HDFS to be mounted as part of the client's
+      local file system.  Users can easily download/upload files from/to the HDFS file
+      system.  
+
+
+- HDFS Web GUI
+
+    HDFS provides a web GUI that can be used to get information about the file system.
+
+    http://name-node-address:50070
