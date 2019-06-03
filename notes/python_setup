@@ -15,3 +15,22 @@ PYTHON SETUP
 - Download and install python
 
     sudo yum install -y python36u python36u-libs python36u-devel python36u-pip
+
+
+
+- Create a new HDFS user to run spark sessions
+
+    # Create a new user on each machine and add it to the hadoop group
+    sudo useradd clusteruser1 -G hadoop
+
+    # Create home directory for this user on HDFS
+    sudo su - hdfs -c "hdfs dfs -mkdir /user/clusteruser1"
+    sudo su - hdfs -c "hdfs dfs -chown clusteruser1:hadoop /user/clusteruser1"
+    sudo su - hdfs -c "hdfs dfs -chmod 755 /user/clusteruser1"
+
+    # Switch to user and can now work on hdfs
+    sudo su - clusteruser1
+
+    # Sample commands
+    hdfs dfs -put /etc/passwd  /user/clusteruser1
+    hdfs dfs -cat  /user/clusteruser1/passwd
