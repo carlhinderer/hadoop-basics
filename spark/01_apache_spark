@@ -118,3 +118,30 @@ CHAPTER 1 - APACHE SPARK
 
     - In 2013, Spark was given to the Apache Software Foundation.  The early AMPlab team launched
         DataBricks.
+
+
+
+- Launching Spark's Interactive Consoles
+
+    - Launching the Python Console
+
+        # Launch pyspark on HDP machine
+        pyspark
+
+
+    - Launching the Scala Console
+
+        # Launch scala console
+        spark-shell
+
+
+    - Launching the SQL Console
+
+        # Launch SQL console
+        spark-sql
+
+
+
+- Data for this book
+
+    https://github.com/databricks/Spark-The-Definitive-Guide
