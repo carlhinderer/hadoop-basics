@@ -63,3 +63,53 @@ CHAPTER 2 - SPARK INTRO
         - The executors, for the most part, will always be running Spark code. However, the driver can 
             be “driven” from a number of different languages through Spark’s language APIs. Let’s take 
             a look at those in the next section.
+
+
+
+- The Spark Session
+
+    - A Spark application is controlled through a driver process called the 'SparkSession'.  The
+        SparkSession instance is the way Spark executes user-defined manipulations across the 
+        cluster.  There is a one-to-one correspondence between a SparkSession and Spark application.
+
+
+    # Start pyspark
+    pyspark
+
+    # Get the spark session
+    >>> spark
+
+    # Create a DataFrame with 1 column, containing 1000 rows with values 0-999.
+    #   This is a distributed collection.  When run on a cluster, each part of this range of
+    #   number exists on a different executor.
+    >>> myRange = spark.range(1000).toDF("number")
+
+
+
+- DataFrames
+
+    - A DataFrame is the most common Structured API and simply represents a table of data with rows 
+        and columns. The list that defines the columns and the types within those columns is called 
+        the schema. You can think of a DataFrame as a spreadsheet with named columns. 
+
+    - Unlike Python/R DataFrames, Spark DataFrames exist on multiple machines.  However, because Spark 
+        has language interfaces for both Python and R, it’s quite easy to convert Pandas (Python) 
+        DataFrames to Spark DataFrames, and R DataFrames to Spark DataFrames.
+
+
+
+- Partitions
+
+    - To allow every executor to perform work in parallel, Spark breaks up the data into chunks 
+        called partitions.  A partition is a collection of rows that sit on one physical machine in 
+        your cluster.  A DataFrame’s partitions represent how the data is physically distributed 
+        across the cluster of machines during execution. 
+
+    - If you have one partition, Spark will have a parallelism of only one, even if you have 
+        thousands of executors. If you have many partitions but only one executor, Spark will still 
+        have a parallelism of only one because there is only one computation resource.
+
+    - An important thing to note is that with DataFrames you do not (for the most part) manipulate
+        partitions manually or individually. You simply specify high-level transformations of data in 
+        the physical partitions, and Spark determines how this work will actually execute on the 
+        cluster. Lower-level APIs do exist (via the RDD interface), but are used less often.
