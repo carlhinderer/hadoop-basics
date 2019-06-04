@@ -201,3 +201,89 @@ CHAPTER 2 - SPARK INTRO
 
     - The Spark UI displays information on the state of your Spark jobs, its environment, and cluster 
         state. It’s very useful, especially for tuning and debugging.
+
+
+
+- End-to-End Example
+
+    - In this chapter, we create a more realistic example, and explain step by step what is
+        happening under the hood.
+
+
+    - We're using a csv file of flight data.
+
+        # Look at csv data
+        head /data/flight-data/csv/2015-summary.csv
+
+
+    - Spark includes the ability to read and write from a large number of data sources.  To read
+        this data, we will use a DataFrameReader that is associated with our SparkSession. In doing 
+        so, we will specify the file format as well as any options we want to specify. 
+
+      In our case, we want to do something called schema inference, which means that we want Spark to 
+        take a best guess at what the schema of our DataFrame should be. We also want to specify that 
+        the first row is the header in the file, so we’ll specify that as an option, too.
+
+      To get the schema information, Spark reads in a little bit of the data and then attempts to 
+        parse the types in those rows according to the types available in Spark. You also have the 
+        option of strictly specifying a schema when you read in data (which we recommend in 
+        production scenarios.
+
+
+        # Read the csv file
+        flightData2015 = spark.read\
+                              .option("inferSchema", "true")\
+                              .opttion("header", "true")\
+                              .csv("data/flight-data/csv/2015-summary.csv")
+
+
+    - Each of these DataFrames have a set of columns with an unspecified number of rows.  The 
+        number of rows is unspecified, because reading data is a transformation, and is therefore
+        a lazy operation.  Spark peeked at a couple of rows to try to guess what types each column
+        should be, but did not read the entire file.
+
+
+        # Read the first 5 rows, like we did from the command line with 'head'
+        >>> flightData2015.take(5)
+
+
+    - Now, we'll apply some transformations.
+
+        # Get the explain plan for sorting by the count column
+        >>> flightData2015.sort("count").explain()
+
+
+      Explain plans can be read from bottom to top, with the bottom being the source of the data,
+        and the top being the end result.
+
+
+    - Now, we'll specify an action to cause the plan to be executed.  First, we'll set a
+        configuration.  By default, when we perform a shuffle, Spark outputs 200 shuffle 
+        partitions.  Let's set this value to 5 to reduce the number of output partitions from
+        the shuffle.
+
+
+        # Set the shuffle partitions
+        >>> spark.conf.set("spark.sql.shuffle.partitions", "5")
+
+        # Execute the transformations
+        >>> flightData2015.sort("count").take(2)
+
+
+    - The logical plan of transformations that we build up defines a lineage for the DataFrame so 
+        that at any given point in time, Spark knows how to recompute any partition by performing 
+        all of the operations it had before on the same input data. This sits at the heart of Spark’s
+        programming model—functional programming where the same inputs always result in the same 
+        outputs when the transformations on that data stay constant.
+
+      We do not manipulate the physical data; instead, we configure physical execution 
+        characteristics through things like the shuffle partitions parameter that we set a few moments 
+        ago.  We ended up with five output partitions because that’s the value we specified in the 
+        shuffle partition. 
+
+      You can change this to help control the physical execution characteristics of your Spark jobs. 
+        Go ahead and experiment with different values and see the number of partitions yourself. In
+        experimenting with different values, you should see drastically different runtimes. 
+
+      Remember that you can monitor the job progress by navigating to the Spark UI on port 4040 to 
+        see the physical and logical execution characteristics of your jobs.
