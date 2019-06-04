@@ -349,3 +349,118 @@ CHAPTER 3 - SPARK TOOLSET
 
         >>> trainDataFrame.count()
         >>> testDataFrame.count()
+
+
+    - Note that these transformations are DataFrame transformations.  Spark’s MLlib also provides a 
+        number of transformations with which we can automate some of our general transformations. One 
+        such transformer is a StringIndexer:
+
+
+        >>> from pyspark.ml.feature import StringIndexer
+        >>> indexer = StringIndexer().setInputCol("day_of_week")\
+                                     .setOutputCol("day_of_week_index")
+
+
+    - This will turn our days of weeks into corresponding numerical values. For example, Spark might
+        represent Saturday as 6, and Monday as 1. However, with this numbering scheme, we are 
+        implicitly stating that Saturday is greater than Monday (by pure numerical values). This is
+        obviously incorrect. To fix this, we therefore need to use a OneHotEncoder to encode each of 
+        these values as their own column. These Boolean flags state whether that day of week is the 
+        relevant day of the week:
+
+
+        >>> from pyspark.ml.feature import OneHotEncoder
+        >>> encoder = OneHotEncoder().setInputCol("day_of_week_index")\
+                                     .setOutputCol("day_of_week_encoded")
+
+
+    - Each of these will result in a set of columns that we will “assemble” into a vector. All machine
+        learning algorithms in Spark take as input a Vector type, which must be a set of numerical 
+        values:
+
+
+        >>> from pyspark.ml.feature import VectorAssembler
+        >>> vectorAssembler = VectorAssembler()\
+                                .setInputCols(["UnitPrice", "Quantity", "day_of_week_encoded"])\
+                                .setOutputCol("features")
+
+
+    - Here, we have three key features: the price, the quantity, and the day of week. Next, we’ll set 
+        this up into a pipeline so that any future data we need to transform can go through the exact 
+        same process:
+
+
+        >>> from pyspark.ml import Pipeline
+        >>> transformationPipeline = Pipeline().setStages([indexer, encoder, vectorAssembler])
+
+
+    - Preparing for training is a two-step process. We first need to fit our transformers to this 
+        dataset. We cover this in depth in Part VI, but basically our StringIndexer needs to know how 
+        many unique values there are to be indexed. After those exist, encoding is easy but Spark must 
+        look at all the distinct values in the column to be indexed in order to store those values 
+        later on:
+
+
+        >>> fittedPipeline = transformationPipeline.fit(trainDataFrame)
+
+
+    - After we fit the training data, we are ready to take that fitted pipeline and use it to 
+        transform all of our data in a consistent and repeatable way:
+
+
+        >>> transformedTraining = fittedPipeline.transform(trainDataFrame)
+
+
+    - At this point, it’s worth mentioning that we could have included our model training in our 
+        pipeline. We chose not to in order to demonstrate a use case for caching the data. Instead, 
+        we’re going to perform some hyperparameter tuning on the model because we do not want to 
+        repeat the exact same transformations over and over again. 
+
+      This will put a copy of the intermediately transformed dataset into memory, allowing us to 
+        repeatedly access it at much lower cost than running the entire pipeline again. If you’re 
+        curious to see how much of a difference this makes, skip this line and run the training 
+        without caching the data. Then try it after caching; you’ll see the results are significant:
+
+
+        >>> transformedTraining.cache()
+
+
+    - We now have a training set; it’s time to train the model. First we’ll import the relevant 
+        model that we’d like to use and instantiate it:
+
+
+        >>> from pyspark.ml.clustering import KMeans
+        >>> kmeans = KMeans().setK(20).setSeed(1L)
+
+
+    - In Spark, training machine learning models is a two-phase process. First, we initialize an 
+        untrained model, and then we train it. There are always two types for every algorithm in 
+        MLlib’s DataFrame API. They follow the naming pattern of Algorithm, for the untrained 
+        version, and AlgorithmModel for the trained version. In our example, this is KMeans and then 
+        KMeansModel.
+
+      Estimators in MLlib’s DataFrame API share roughly the same interface that we saw earlier with 
+        our preprocessing transformers like the StringIndexer. This should come as no surprise because 
+        it makes training an entire pipeline (which includes the model) simple. For our purposes here, 
+        we want to do things a bit more step by step, so we chose to not do this in this example:
+
+
+        >>> kmModel = kmeans.fit(transformedTraining)
+
+
+    - After we train this model, we can compute the cost according to some success merits on our 
+        training set. The resulting cost on this dataset is actually quite high, which is likely due 
+        to the fact that we did not properly preprocess and scale our input data.
+
+
+        >>> kmModel.computeCost(transformedTraining)
+        >>> transformedTest = fittedPipeline.transform(testDataFrame)
+        >>> kmModel.computeCost(transformedTest)
+
+
+    - Naturally, we could continue to improve this model, layering more preprocessing as well as 
+        performing hyperparameter tuning to ensure that we’re getting a good model.
+
+
+
+- 
