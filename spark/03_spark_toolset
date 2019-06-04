@@ -1,0 +1,105 @@
+---------------------------------------------------------------------------
+CHAPTER 3 - SPARK TOOLSET
+---------------------------------------------------------------------------
+
+- Running Production Applications
+
+    - Spark makes it easy to develop and create big data programs. Spark also makes it easy to turn 
+        your interactive exploration into production applications with 'spark-submit', a built-in 
+        command-line tool. 
+
+      spark-submit does one thing: it lets you send your application code to a cluster and launch it 
+        to execute there. Upon submission, the application will run until it exits (completes the 
+        task) or encounters an error. You can do this with all of Spark’s support cluster managers 
+        including Standalone, Mesos, and YARN.
+
+
+    - spark-submit offers several controls with which you can specify the resources your application 
+        needs as well as how it should be run and its command-line arguments.
+
+
+    - You can write applications in any of Spark’s supported languages and then submit them for 
+        execution. The simplest example is running an application on your local machine. We’ll show 
+        this by running a sample Scala application that comes with Spark, using the following command 
+        in the directory where you downloaded Spark:
+
+       ./bin/spark-submit \
+          --class org.apache.spark.examples.SparkPi \
+          --master local \
+          ./examples/jars/spark-examples_2.11-2.2.0.jar 10
+
+
+      This sample application calculates the digits of pi to a certain level of estimation. Here, 
+        we’ve told spark-submit that we want to run on our local machine, which class and which JAR we 
+        would like to run, and some command-line arguments for that class.
+
+
+    - We can also run a Python version of the application using the following command:
+
+        ./bin/spark-submit \
+          --master local \
+          ./examples/src/main/python/pi.py 10
+
+
+      By changing the master argument of spark-submit, we can also submit the same application to a 
+        cluster running Spark’s standalone cluster manager, Mesos or YARN.
+
+
+
+- Datasets - Type-Safe Structured APIs
+
+    - Datasets are a type-safe version of Spark's API for writing statically typed code in Java and
+        Scala.  The Dataset API is not available in Python or R, as they're dynamically typed.
+
+
+    - Recall that DataFrames, which we saw in the previous chapter, are a distributed collection of 
+        objects of type Row that can hold various types of tabular data. The Dataset API gives users 
+        the ability to assign a Java/Scala class to the records within a DataFrame and manipulate it 
+        as a collection of typed objects, similar to a Java ArrayList or Scala Seq. The APIs available 
+        on Datasets are type-safe, meaning that you cannot accidentally view the objects in a Dataset 
+        as being of another class than the class you put in initially. This makes Datasets especially
+        attractive for writing large applications, with which multiple software engineers must interact
+        through well-defined interfaces.
+
+
+    - The Dataset class is parameterized with the type of object contained inside: Dataset<T> in Java 
+        and Dataset[T] in Scala. For example, a Dataset[Person] will be guaranteed to contain objects 
+        of class Person. As of Spark 2.0, the supported types are classes following the JavaBean 
+        pattern in Java and case classes in Scala. These types are restricted because Spark needs to be 
+        able to automatically analyze the type T and create an appropriate schema for the tabular data 
+        within your Dataset.
+
+
+    - One great thing about Datasets is that you can use them only when you need or want to. For 
+        instance, in the following example, we’ll define our own data type and manipulate it via 
+        arbitrary map and filter functions. After we’ve performed our manipulations, Spark can 
+        automatically turn it back into a DataFrame, and we can manipulate it further by using the 
+        hundreds of functions that Spark includes. This makes it easy to drop down to lower level, 
+        perform type-safe coding when necessary, and move higher up to SQL for more rapid analysis.
+
+      Here is a small example showing how you can use both type-safe functions and DataFrame-like SQL
+        expressions to quickly write business logic:
+
+        // in Scala
+        case class Flight(DEST_COUNTRY_NAME: String,
+                          ORIGIN_COUNTRY_NAME: String,
+                          count: BigInt)
+        val flightsDF = spark.read
+                             .parquet("/data/flight-data/parquet/2010-summary.parquet/")
+        val flights = flightsDF.as[Flight]
+
+
+    - One final advantage is that when you call collect or take on a Dataset, it will collect objects 
+        of the proper type in your Dataset, not DataFrame Rows. This makes it easy to get type safety and
+        securely perform manipulation in a distributed and a local manner without code changes:
+
+        // in Scala
+        flights
+          .filter(flight_row => flight_row.ORIGIN_COUNTRY_NAME != "Canada")
+          .map(flight_row => flight_row)
+          .take(5)
+        
+        flights
+          .take(5)
+          .filter(flight_row => flight_row.ORIGIN_COUNTRY_NAME != "Canada")
+          .map(fr => Flight(fr.DEST_COUNTRY_NAME, fr.ORIGIN_COUNTRY_NAME, fr.count + 5))
