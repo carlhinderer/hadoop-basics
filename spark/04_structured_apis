@@ -1,0 +1,64 @@
+---------------------------------------------------------------------------
+CHAPTER 4 - STRUCTURED API OVERVIEW
+---------------------------------------------------------------------------
+
+- Fundamental Concepts
+
+    - Spark is a distributed programming model in which the user specifies transformation.
+
+    - Multiple transformations build up a DAG of instructions.
+
+    - An action begins the process of executing that graph of instructions, as a single job,
+        by breaking it down into stages and tasks to execute across the cluster.
+
+    - The logical structures that we manipulate with transformations and actions are 'DataFrames'
+        and 'Datasets'.
+
+    - To create a new DataFrame or Dataset, you call a transformation.
+
+    - To start computation or convert to native language types, you call an action.
+
+
+
+- DataFrames and Datasets
+
+    - DataFrames and Datasets are table-like collections with well-defined rows and columns.  Each
+        column must have the same number of rows as all the other columns, and each column has
+        type information that must be consistent for every row in the collection. 
+
+
+    - To Spark, DataFrames and Datasets represent immutable, lazily evaluated plans that specify 
+        what operations to apply to data residing at a location to generate some output. When we 
+        perform an action on a DataFrame, we instruct Spark to perform the actual transformations and 
+        return the result. These represent plans of how to manipulate rows and columns to compute the 
+        user’s desired result.
+
+
+    - A schema defines the column names and types of a DataFrame.  You can define schemas manually or
+        read a schema from a data source ('schema on read').  Schemas consist of types.
+
+
+
+- Structured Spark Types
+
+    - Spark is effectively a programming language of its own. Internally, Spark uses an engine called 
+        'Catalyst' that maintains its own type information through the planning and processing of work. 
+        In doing so, this opens up a wide variety of execution optimizations that make significant
+        differences. 
+
+
+    - Spark types map directly to the different language APIs that Spark maintains and there exists a 
+        lookup table for each of these in Scala, Java, Python, SQL, and R. Even if we use Spark’s 
+        Structured APIs from Python or R, the majority of our manipulations will operate strictly on 
+        Spark types, not Python types. For example, the following code does not perform addition in 
+        Python; it actually performs addition purely in Spark:
+
+
+      >>> df = spark.range(500).toDF("number")
+      >>> df.select(df["number"] + 10)
+
+
+      This addition operation happens because Spark will convert an expression written in an input 
+        language to Spark’s internal Catalyst representation of that same type information. It then 
+        will operate on that internal representation. We touch on why this is the case momentarily, but
+        before we can, we need to discuss Datasets.
