@@ -62,3 +62,82 @@ CHAPTER 4 - STRUCTURED API OVERVIEW
         language to Spark’s internal Catalyst representation of that same type information. It then 
         will operate on that internal representation. We touch on why this is the case momentarily, but
         before we can, we need to discuss Datasets.
+
+
+
+- DataFrames vs Datasets
+
+    - In essence, within the Structured APIs, there are two more APIs, the “untyped” DataFrames and the
+        “typed” Datasets. To say that DataFrames are untyped is aslightly inaccurate; they have types, 
+        but Spark maintains them completely and only checks whether those types line up to those 
+        specified in the schema at runtime. 
+
+      Datasets, on the other hand, check whether types conform to the specification at compile time. 
+        Datasets are only available to JVM–based languages (Scala and Java) and we specify types with 
+        case classes or Java beans.
+
+
+    - For the most part, you’re likely to work with DataFrames. To Spark (in Scala), DataFrames are 
+        simply Datasets of Type Row. The “Row” type is Spark’s internal representation of its optimized
+        in-memory format for computation. 
+
+      This format makes for highly specialized and efficient computation because rather than using JVM 
+        types, which can cause high garbage-collection and object instantiation costs, Spark can operate 
+        on its own internal format without incurring any of those costs. To Spark (in Python or R), 
+        there is no such thing as a Dataset: everything is a DataFrame and therefore we always operate 
+        on that optimized format.
+
+      Understanding DataFrames, Spark Types, and Schemas takes some time to digest. What you need to 
+        know is that when you’re using DataFrames, you’re taking advantage of Spark’s optimized internal
+        format. This format applies the same efficiency gains to all of Spark’s language APIs.
+
+
+
+- Columns
+
+    - Columns represent a simple type like an integer or string, a complex type like an array or map, 
+        or a null value.  Spark tracks all of this type information for you and offers a variety of ways, with which you can transform columns.  For the most part you can think about Spark Column types as columns in a table.
+
+
+
+- Rows
+
+    - A row is nothing more than a record of data. Each record in a DataFrame must be of type Row, as 
+        we can see when we collect the following DataFrames. We can create these rows manually from SQL,
+        from Resilient Distributed Datasets (RDDs), from data sources, or manually from scratch. Here, 
+        we create one by using a range:
+
+
+        >>> spark.range(2).collect()
+
+
+      This results in an array of Row objects.
+
+
+
+- Spark Types
+
+    - We mentioned earlier that Spark has a large number of internal type representations. We include a
+        handy reference table on the next several pages so that you can most easily reference what type, 
+        in your specific language, lines up with the type in Spark.
+
+
+    - To work with the correct Scala types, use the following:
+
+        >>> import org.apache.spark.sql.types._
+        >>> val b = ByteType
+
+
+    - To work with the correct Java types, you should use the factory methods in the following package:
+
+        >>> import org.apache.spark.sql.types.DataTypes;
+        >>> ByteType x = DataTypes.ByteType;
+
+
+    - To work with the correct Python types, use the following:
+
+        >>> from pyspark.sql.types import *
+        >>> b = ByteType()
+
+
+
