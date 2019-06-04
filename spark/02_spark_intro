@@ -341,3 +341,153 @@ CHAPTER 2 - SPARK INTRO
 
 
        Notice that these plans compile to the exact same underlying plan!
+
+
+
+- Summary Statistics From SQL
+
+    - Let’s pull out some interesting statistics from our data. One thing to understand is that DataFrames 
+        (and SQL) in Spark already have a huge number of manipulations available. There are hundreds of 
+        functions that you can use and import to help you resolve your big data problems faster. 
+
+      We will use the 'max' function, to establish the maximum number of flights to and from any given 
+        location. This just scans each value in the relevant column in the DataFrame and checks whether 
+        it’s greater than the previous values that have been seen. This is a transformation, because we 
+        are effectively filtering down to one row.
+
+
+      # SQL query
+      >>> spark.sql("SELECT max(count) from flight_data_2015").take(1)
+
+      # In Python
+      >>> from pyspark.sql.functions import max
+      >>> flightData2015.select(max("count")).take(1)
+
+
+    - Great, that’s a simple example that gives a result of 370,002. Let’s perform something a bit more 
+        complicated and find the top five destination countries in the data. This is our first multi-
+        transformation query, so we’ll take it step by step. Let’s begin with a fairly straightforward 
+        SQL aggregation.
+
+
+      # in Python
+      >>> maxSql = spark.sql("""
+                             SELECT DEST_COUNTRY_NAME, sum(count) as destination_total
+                             FROM flight_data_2015
+                             GROUP BY DEST_COUNTRY_NAME
+                             ORDER BY sum(count) DESC
+                             LIMIT 5
+                             """)
+
+      >>> maxSql.show()
+
+      +-----------------+-----------------+
+      |DEST_COUNTRY_NAME|destination_total|
+      +-----------------+-----------------+
+      |    United States|           411352|
+      |           Canada|             8399|
+      |           Mexico|             7140|
+      |   United Kingdom|             2025|
+      |            Japan|             1548|
+      +-----------------+-----------------+
+
+
+    - Now, let’s move to the DataFrame syntax that is semantically similar but slightly different in 
+        implementation and ordering. But, as we mentioned, the underlying plans for both of them are the 
+        same. Let’s run the queries and see their results as a sanity check:
+
+
+      >>> from pyspark.sql.functions import desc
+
+      >>> flightData2015\
+                .groupBy("DEST_COUNTRY_NAME")\
+                .sum("count")\
+                .withColumnRenamed("sum(count)", "destination_total")\
+                .sort(desc("destination_total"))\
+                .limit(5)\
+                .show()
+
+      +-----------------+-----------------+
+      |DEST_COUNTRY_NAME|destination_total|
+      +-----------------+-----------------+
+      |    United States|           411352|
+      |           Canada|             8399|
+      |           Mexico|             7140|
+      |   United Kingdom|             2025|
+      |            Japan|             1548|
+      +-----------------+-----------------+
+
+
+    - Now there are seven steps that take us all the way back to the source data. You can see this in the 
+        explain plan on those DataFrames. This execution plan is a directed acyclic graph (DAG) of 
+        transformations, each resulting in a new immutable DataFrame, on which we call an action to 
+        generate a result.
+
+
+      1. The first step is to read in the data. We defined the DataFrame previously but, as a reminder, 
+           Spark does not actually read it in until an action is called on that DataFrame or one derived 
+           from the original DataFrame.
+
+      2. The second step is our grouping; technically when we call groupBy, we end up with a 
+           RelationalGroupedDataset, which is a fancy name for a DataFrame that has a grouping specified 
+           but needs the user to specify an aggregation before it can be queried further. We basically 
+           specified that we’re going to be grouping by a key (or set of keys) and that now we’re going to 
+           perform an aggregation over each one of those keys.
+
+      3. Therefore, the third step is to specify the aggregation. Let’s use the sum aggregation method. 
+           This takes as input a column expression or, simply, a column name. The result of the sum method 
+           call is a new DataFrame. You’ll see that it has a new schema but that it does know the type of 
+           each column. It’s important to reinforce (again!) that no computation has been performed. This 
+           is simply another transformation that we’ve expressed, and Spark is simply able to trace our 
+           type information through it.
+
+      4. The fourth step is a simple renaming. We use the withColumnRenamed method that takes two arguments, 
+           the original column name and the new column name. Of course, this doesn’t perform computation: 
+           this is just another transformation!
+
+      5. The fifth step sorts the data such that if we were to take results off of the top of the DataFrame, 
+           they would have the largest values in the destination_total column.
+
+
+    - You likely noticed that we had to import a function to do this, the desc function. You might also have 
+        noticed that desc does not return a string but a Column. In general, many DataFrame methods will 
+        accept strings (as column names) or Column types or expressions. Columns and expressions are actually 
+        the exact same thing.
+
+
+
+    - Penultimately, we’ll specify a limit. This just specifies that we only want to return the first five 
+        values in our final DataFrame instead of all the data.
+
+      The last step is our action! Now we actually begin the process of collecting the results of our DataFrame, 
+        and Spark will give us back a list or array in the language that we’re executing. To reinforce all of 
+        this, let’s look at the explain plan for the previous query:
+
+
+        >>> flightData2015\
+                    .groupBy("DEST_COUNTRY_NAME")\
+                    .sum("count")\
+                    .withColumnRenamed("sum(count)", "destination_total")\
+                    .sort(desc("destination_total"))\
+                    .limit(5)\
+                    .explain()
+
+        == Physical Plan ==
+        TakeOrderedAndProject(limit=5, orderBy=[destination_total#16194L DESC], outpu...
+        +- *HashAggregate(keys=[DEST_COUNTRY_NAME#7323], functions=[sum(count#7325L)])
+           +- Exchange hashpartitioning(DEST_COUNTRY_NAME#7323, 5)
+              +- *HashAggregate(keys=[DEST_COUNTRY_NAME#7323], functions=[partial_sum...
+                 +- InMemoryTableScan [DEST_COUNTRY_NAME#7323, count#7325L]
+                       +- InMemoryRelation [DEST_COUNTRY_NAME#7323, ORIGIN_COUNTRY_NA...
+                             +- *Scan csv [DEST_COUNTRY_NAME#7578,ORIGIN_COUNTRY_NAME...
+
+
+        Although this explain plan doesn’t match our exact “conceptual plan,” all of the pieces are there. You 
+          can see the limit statement as well as the orderBy (in the first line). You can also see how our 
+          aggregation happens in two phases, in the partial_sum calls. This is because summing a list of numbers is 
+          commutative, and Spark can perform the sum, partition by partition. Of course we can see how we read in 
+          the DataFrame, as well.
+
+        Naturally, we don’t always need to collect the data. We can also write it out to any data source that Spark 
+          supports. For instance, suppose we want to store the information in a database like PostgreSQL or write 
+          them out to another file.
