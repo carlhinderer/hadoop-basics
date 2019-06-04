@@ -495,3 +495,33 @@ CHAPTER 3 - SPARK TOOLSET
         maintaining older Spark code. There are basically no instances in modern Spark, for which you 
         should be using RDDs instead of the structured APIs beyond manipulating some very raw 
         unprocessed and unstructured data.
+
+
+
+- SparkR
+
+    - SparkR is a tool for running R on Spark. It follows the same principles as all of Spark’s other
+        language bindings. To use SparkR, you simply import it into your environment and run your code. 
+        It’s all very similar to the Python API except that it follows R’s syntax instead of Python. 
+        For the most part, almost everything available in Python is available in SparkR:
+
+
+        >>> library(SparkR)
+        >>> sparkDF <- read.df("/data/flight-data/csv/2015-summary.csv",
+                                 source = "csv", header="true", inferSchema = "true")
+        >>> take(sparkDF, 5)
+        >>> collect(orderBy(sparkDF, "count"), 20)
+
+
+    - R users can also use other R libraries like the pipe operator in magrittr to make Spark
+        transformations a bit more R-like. This can make it easy to use with other libraries like 
+        ggplot for more sophisticated plotting:
+
+
+        >>> library(magrittr)
+        >>> sparkDF %>%
+                orderBy(desc(sparkDF$count)) %>%
+                groupBy("ORIGIN_COUNTRY_NAME") %>%
+                count() %>%
+                limit(10) %>%
+                collect()
