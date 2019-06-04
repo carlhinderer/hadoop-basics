@@ -287,3 +287,57 @@ CHAPTER 2 - SPARK INTRO
 
       Remember that you can monitor the job progress by navigating to the Spark UI on port 4040 to 
         see the physical and logical execution characteristics of your jobs.
+
+
+
+- DataFrames and SQL
+
+    - Now, we'll work through a more complex example, and follow along in both DataFrames and
+        SQL.  Spark can run the same transformations, regardless of the language, in the exact
+        same way.  You can express your business logic in SQL or in DataFrames (in R, Python,
+        Scala, or Java) and Spark will compile that logic down to an underlying plan before
+        executing your code.
+
+      With Spark SQL, you can register any DataFrame as a table or view.  With Spark SQL, you can 
+        register any DataFrame as a table or view (a temporary table) and query it using pure SQL. There is 
+        no performance difference between writing SQL queries or writing DataFrame code, they both “compile” 
+        to the same underlying plan that we specify in DataFrame code.
+
+
+    -  You can make any DataFrame into a table or view with one simple method call:
+
+       # Create a table from a DataFrame
+       >>> flightData2015.createOrReplaceTempView("flight_data_2015")
+
+
+       Now we can query our data in SQL. To do so, we’ll use the spark.sql function (remember, spark is our 
+         SparkSession variable) that conveniently returns a new DataFrame. Although this might seem a bit 
+         circular in logic—that a SQL query against a DataFrame returns another DataFrame—it’s actually quite 
+         powerful. This makes it possible for you to specify transformations in the manner most convenient to 
+         you at any given point in time and not sacrifice any efficiency to do so! To understand that this is 
+         happening, let’s take a look at two explain plans:
+
+
+       >>> sqlWay = spark.sql("""
+                              SELECT DEST_COUNTRY_NAME, count(1)
+                              FROM flight_data_2015
+                              GROUP BY DEST_COUNTRY_NAME
+                              """)
+
+       >>> dataFrameWay = flightData2015.groupBy("DEST_COUNTRY_NAME").count()
+       >>> sqlWay.explain()
+       >>> dataFrameWay.explain()
+
+       == Physical Plan ==
+       *HashAggregate(keys=[DEST_COUNTRY_NAME#182], functions=[count(1)])
+       +- Exchange hashpartitioning(DEST_COUNTRY_NAME#182, 5)
+          +- *HashAggregate(keys=[DEST_COUNTRY_NAME#182], functions=[partial_count(1)])
+             +- *FileScan csv [DEST_COUNTRY_NAME#182] ...
+       == Physical Plan ==
+       *HashAggregate(keys=[DEST_COUNTRY_NAME#182], functions=[count(1)])
+       +- Exchange hashpartitioning(DEST_COUNTRY_NAME#182, 5)
+          +- *HashAggregate(keys=[DEST_COUNTRY_NAME#182], functions=[partial_count(1)])
+             +- *FileScan csv [DEST_COUNTRY_NAME#182] ...
+
+
+       Notice that these plans compile to the exact same underlying plan!
