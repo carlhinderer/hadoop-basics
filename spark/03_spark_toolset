@@ -285,3 +285,67 @@ CHAPTER 3 - SPARK TOOLSET
 
 
 
+- Machine Learning and Advanced Analytics
+
+    - Another popular aspect of Spark is its ability to perform large-scale machine learning with a 
+        built-in library of machine learning algorithms called MLlib. MLlib allows for preprocessing,
+        munging, training of models, and making predictions at scale on data. You can even use models
+        trained in MLlib to make predictions in Strucutred Streaming. Spark provides a sophisticated 
+        machine learning API for performing a variety of machine learning tasks, from classification to
+        regression, and clustering to deep learning.
+
+      To demonstrate this functionality, we will perform some basic clustering on our data using a 
+        standard algorithm called 𝘬-means.
+
+
+    - Spark includes a number of preprocessing methods out of the box. To demonstrate these methods, 
+        we will begin with some raw data, build up transformations before getting the data into the 
+        right format, at which point we can actually train our model and then serve predictions:
+
+        
+        # Print the schema values
+        >>> staticDataFrame.printSchema()
+
+        root
+         |-- InvoiceNo: string (nullable = true)
+         |-- StockCode: string (nullable = true)
+         |-- Description: string (nullable = true)
+         |-- Quantity: integer (nullable = true)
+         |-- InvoiceDate: timestamp (nullable = true)
+         |-- UnitPrice: double (nullable = true)
+         |-- CustomerID: double (nullable = true)
+         |-- Country: string (nullable = true)
+
+
+    - Machine learning algorithms in MLlib require that data is represented as numerical values. 
+        Our current data is represented by a variety of different types, including timestamps, 
+        integers, and strings. Therefore we need to transform this data into some numerical 
+        representation. In this instance, we’ll use several DataFrame transformations to manipulate 
+        our date data:
+
+
+        >>> from pyspark.sql.functions import date_format, col
+        >>> preppedDataFrame = staticDataFrame\
+                                 .na.fill(0)\
+                                 .withColumn("day_of_week", date_format(col("InvoiceDate"), "EEEE"))\
+                                 .coalesce(5)
+
+
+    - We are also going to need to split the data into training and test sets. In this instance, we 
+        are going to do this manually by the date on which a certain purchase occurred; however, we 
+        could also use MLlib’s transformation APIs to create a training and test set via train 
+        validation splits or cross validation.
+
+
+        >>> trainDataFrame = preppedDataFrame.where("InvoiceDate < '2011-07-01'")
+        >>> testDataFrame = preppedDataFrame.where("InvoiceDate >= '2011-07-01'")
+
+
+    - Now that we’ve prepared the data, let’s split it into a training and test set. Because this is 
+        a time–series set of data, we will split by an arbitrary date in the dataset. Although this 
+        might not be the optimal split for our training and test, for the intents and purposes of 
+        this example it will work just fine. We’ll see that this splits our dataset roughly in half:
+
+
+        >>> trainDataFrame.count()
+        >>> testDataFrame.count()
