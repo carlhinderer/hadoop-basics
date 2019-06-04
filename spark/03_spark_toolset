@@ -463,4 +463,35 @@ CHAPTER 3 - SPARK TOOLSET
 
 
 
-- 
+- Lower-Level APIs
+
+    - Spark includes a number of lower-level primitives to allow for arbitrary Java and Python object
+        manipulation via Resilient Distributed Datasets (RDDs). Virtually everything in Spark is built 
+        on top of RDDs. 
+
+      DataFrame operations are built on top of RDDs and compile down to these lower-level tools for
+        convenient and extremely efficient distributed execution. There are some things that you might 
+        use RDDs for, especially when you’re reading or manipulating raw data, but for the most part 
+        you should stick to the Structured APIs. RDDs are lower level than DataFrames because they 
+        reveal physical execution characteristics (like partitions) to end users.
+
+
+    - One thing that you might use RDDs for is to parallelize raw data that you have stored in memory 
+        on the driver machine. For instance, let’s parallelize some simple numbers and create a 
+        DataFrame after we do so. We then can convert that to a DataFrame to use it with other 
+        DataFrames:
+
+
+        >>> from pyspark.sql import Row
+        >>> spark.sparkContext.parallelize([Row(1), Row(2), Row(3)]).toDF()
+
+
+    - RDDs are available in Scala as well as Python. However, they’re not equivalent. This differs 
+        from the DataFrame API (where the execution characteristics are the same) due to some 
+        underlying implementation details. 
+
+
+    - As end users, you shouldn’t need to use RDDs much in order to perform many tasks unless you’re
+        maintaining older Spark code. There are basically no instances in modern Spark, for which you 
+        should be using RDDs instead of the structured APIs beyond manipulating some very raw 
+        unprocessed and unstructured data.
