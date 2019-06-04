@@ -141,3 +141,94 @@ CHAPTER 4 - STRUCTURED API OVERVIEW
 
 
 
+- List of Spark's Python Bindings
+
+
+Data type:   ByteType
+Python type: int or long. Note: Numbers will be converted to 1-byte signed integer numbers at
+                        runtime. Ensure that numbers are within the range of –128 to 127.
+API:         ByteType()
+
+
+Data type:   ShortType
+Python type: int or long. Note: Numbers will be converted to 2-byte signed integer numbers at runtime. 
+               Ensure that numbers are within the range of –32768 to 32767.
+API:         ShortType()
+
+
+Data type:   IntegerType
+Python type: int or long. Note: Python has a lenient definition of “integer.” Numbers that are too 
+               large will be rejected by Spark SQL if you use the IntegerType(). It’s best practice 
+               to use LongType.
+API:         IntegerType()
+
+
+Data type:   LongType
+Python type: long. Note: Numbers will be converted to 8-byte signed integer numbers at runtime. Ensure 
+               that numbers are within the range of –9223372036854775808 to 9223372036854775807. 
+               Otherwise, convert data to decimal.Decimal and use DecimalType.
+API:         LongType()
+
+
+Data type:   FloatType
+Python type: float. Note: Numbers will be converted to 4-byte single-precision floating-point numbers 
+               at runtime.
+API:         FloatType()
+
+
+Data type:   DoubleType
+Python type: float
+API:         DoubleType()
+
+
+Data type:   DecimalType
+Python type: decimal.Decimal
+API:         DecimalType()
+
+
+Data type:   StringType
+Python type: string
+API:         StringType()
+
+
+Data type:   BinaryType
+Python type: bytearray
+API:         BinaryType()
+
+
+Data type:   BooleanType
+Python type: bool
+API:         BooleanType()
+
+
+Data type:   TimestampType
+Python type: datetime.datetime
+API:         TimestampType()
+
+
+Data type:   DateType
+Python type: datetime.date
+API:         DateType()
+
+
+Data type:   ArrayType
+Python type: list, tuple, or array
+API:         ArrayType(elementType, [containsNull]). Note: The default value of containsNull is True.
+
+
+Data type:   MapType
+Python type: dict
+API:         MapType(keyType, valueType, [valueContainsNull]). Note: The default value of 
+               valueContainsNull is True.
+
+
+Data type:   StructType
+Python type: list or tuple
+API:         StructType(fields). Note: fields is a list of StructFields. Also, fields with the same 
+               name are not allowed.
+
+
+Data type:   StructField
+Python type: The value type in Python of the data type of this field (for example, Int for a StructField
+               with the data type IntegerType)
+API:         StructField(name, dataType, [nullable]) Note: The default value of nullable is True.
