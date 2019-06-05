@@ -1,0 +1,61 @@
+---------------------------------------------------------------------------
+CHAPTER 5 - BASIC STRUCTURED OPERATIONS
+---------------------------------------------------------------------------
+
+- Creating a DataFrame
+
+    # This creates the DataFrame with which we can work
+    >>> df = spark.read.format("json").load("/data/flight-data/json/2015-summary.json")
+
+    # Look at our schema
+    >>> df.printSchema()
+
+
+
+- Schemas
+
+    - A schema defines the column names and types of a DataFrame.  We can either let a data source
+        define the schema ('schema-on-read') or we can define it explicitly ourselves.
+
+
+    - Deciding whether you need to define a schema prior to reading in your data depends on your 
+        use case. For ad hoc analysis, schema-on-read usually works just fine (although at times it 
+        can be a bit slow with plain-text file formats like CSV or JSON). 
+
+      However, this can also lead to precision issues like a long type incorrectly set as an integer 
+        when reading in a file. When using Spark for production Extract, Transform, and Load (ETL), it 
+        is often a good idea to define your schemas manually, especially when working with untyped 
+        data sources like CSV and JSON because schema inference can vary depending on the type of data 
+        that you read in.
+
+
+    - Here, we infer the schema for our json flight data file.
+
+        # Load the json file and infer the schema
+        >>> spark.read.format("json").load("/data/flight-data/json/2015-summary.json").schema
+
+        StructType(List(StructField(DEST_COUNTRY_NAME,StringType,true),
+        StructField(ORIGIN_COUNTRY_NAME,StringType,true),
+        StructField(count,LongType,true)))
+
+
+    - A schema is a 'StructType' made up of a number of fields, 'StructFields', that have a name, type, 
+        a Boolean flag which specifies whether that column can contain missing or null values, and, 
+        finally, users can optionally specify associated metadata with that column. The metadata is a 
+        way of storing information about this column (Spark uses this in its machine learning library).
+
+      Schemas can contain other StructTypes (Spark’s complex types). If the types in the data (at 
+        runtime) do not match the schema, Spark will throw an error. The example that follows shows 
+        how to create and enforce a specific schema on a DataFrame.
+
+
+        >>> from pyspark.sql.types import StructField, StructType, StringType, LongType
+
+        >>> myManualSchema = StructType([
+                               StructField("DEST_COUNTRY_NAME", StringType(), True),
+                               StructField("ORIGIN_COUNTRY_NAME", StringType(), True),
+                               StructField("count", LongType(), False, metadata={"hello":"world"})
+                             ])
+
+        >>> df = spark.read.format("json").schema(myManualSchema)\
+                                          .load("/data/flight-data/json/2015-summary.json")
