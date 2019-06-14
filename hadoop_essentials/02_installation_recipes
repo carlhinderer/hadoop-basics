@@ -1,0 +1,48 @@
+------------------------------------------------------------
+CHAPTER 2 - INSTALLATION RECIPES
+------------------------------------------------------------
+
+- HDFS Services
+
+    - HDFS has 2 major components:
+
+        1. The 'NameNode', which is the process that manages the entire file system
+
+        2. The 'DataNodes', which are the processes that manage the actual data
+
+
+    - In a typical Hadoop cluster, all the worker machines in the cluster (often referred to as
+        nodes) are running the 'DataNode' service that reports the the central NameNode.
+
+
+    - The 'NameNode' is often run on a separate machine from other Hadoop processes.  It can be
+        run in federated and/or failover mode as well.
+
+
+    - There is also a process called the 'SecondaryNameNode'.  This process is not a backup
+        NameNode, and is best described as a CheckPointNode.  The SecondaryNameNode periodically
+        fetches the in-memory HDFS edits from the NameNode and allows the NameNode to work 
+        quickly without having to comming file system changes directly to disk.
+
+
+
+- YARN Services
+
+    - YARN has 2 main services that are required to run a program on a Hadoop cluster:
+
+        1. 'ResourceManager', which is a single master scheduler for all cluster jobs.  The 
+             ResourceManager works by communicating with the 'NodeManager' service running on
+             worker nodes.
+
+        2. The 'NodeManager' manages all the actual work done on the cluster nodes. There needs to 
+             be at least one NodeManager running for Hadoop jobs to run. 
+
+
+    - Both the ResourceManager and NodeManagers are job neutral.  They have no knowledge or interest
+        in what the actual user job is doing.
+
+
+    - In addition, some history servers can be run as a part of YARN.  These services are not
+        essential for jobs to run, but they make job tracking much easier.  The 'JobHistoryServer'
+        is used for MapReduce job history collection.  The 'ApplicationHistoryServer' is a more
+        general hisgory server used for non-MapReduce jobs.
