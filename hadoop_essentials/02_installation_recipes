@@ -45,4 +45,73 @@ CHAPTER 2 - INSTALLATION RECIPES
     - In addition, some history servers can be run as a part of YARN.  These services are not
         essential for jobs to run, but they make job tracking much easier.  The 'JobHistoryServer'
         is used for MapReduce job history collection.  The 'ApplicationHistoryServer' is a more
-        general hisgory server used for non-MapReduce jobs.
+        general history server used for non-MapReduce jobs.
+
+
+
+- Hadoop Configuration Files
+
+    All core Hadoop services use XML files for storing parameters.  The files have the following 
+      format:
+
+      <property>
+          <name>dfs.replication</name>
+          <value>1</value>
+      </property>
+
+
+
+- Steps to Install Hadoop from Apache Sources on a Single Node
+
+    1. Download Hadoop
+
+    2. Set JAVA_HOME and HADOOP_HOME
+
+    3. Create users and groups
+
+    4. Make data and log directories
+
+    5. Configure 'core-site.xml'
+
+    6. Configure 'hdfs-site.xml'
+
+    7. Configure 'mapred-site.xml'
+
+    8. Configure 'yarn-site.xml'
+
+    9. Modify Java heap sizes
+
+    10. Format HDFS
+
+    11. Start HDFS services
+
+          # Check which services are running
+          jps
+
+    12. Start YARN services
+
+    13. Verify the running services using the web interface
+
+          # Check HDFS console
+          http://localhost:50070
+
+          # Check Resource Manager console
+          http://localhost:8088
+
+          # Log into Ambari server
+          http://localhost:8080
+
+    (Optional) Install Pig and Hive
+
+
+
+- Installing Hadoop in the Cloud with Apache Whirr
+
+    Apache Whirr is a set of libraries for running cloud services.  Whirr provides the following
+      benefits:
+
+      1. Cloud-neutral way to run services
+
+      2. Common service API
+
+      3. Smart defaults for services
