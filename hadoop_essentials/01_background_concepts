@@ -1,0 +1,122 @@
+------------------------------------------------------------
+CHAPTER 1 - BACKGROUND AND CONCEPTS
+------------------------------------------------------------
+
+- Features of Hadoop Data Processing
+
+    1. Core parts are open source under Apache licensing
+
+    2. Analysis usually involves large, unstructured data sometimes in the petabyte range
+
+    3. Traditionally, data is stored across multiple servers using HDFS, but other storage
+         systems are now used
+
+    4. MapReduce jobs can scale from a single server to thousands
+
+    5. Other programming models are supported in Hadoop v2 with YARN
+
+    6. Hadoop core components were designed to run on commodity hardware and the cloud
+
+    7. Hadoop offers many fault-tolerant features that enable operation over large number
+         of servers
+
+    8. Many projects and applications are built on top of the Hadoop infrastructure
+
+    9. Although the core components are written in Java, Hadoop applications can use almost
+         any programming language
+
+
+
+- Defining Big Data
+
+    - Characteristics of Big Data
+
+        1. Volume = sheer size of the data
+
+        2. Variety = comes from a variety of sources and is not necessarily related to other 
+                       data sources
+
+        3. Velocity = speed at which data can be generated and processed
+
+        4. Variability = data may be highly variable, incomplete, and inconsistent
+
+        5. Complexity = relationships between data may be complex and non-relational
+
+
+    - "5 V's of Big Data"
+
+        1. Volume
+        2. Variety
+        3. Velocity
+        4. Value = how to monetize the data
+        5. Veracity = varying quality of the data
+
+
+    - Size of Big Data
+
+        - Sweet spot starts at ~100 GB
+        - Most common amount of data for the average company is 10-30 TB
+        - 90% of jobs on Facebook cluster are < 100 GB
+
+
+    - Types of Data
+
+        - Media, including video, audio, and photos
+        - Web data like logs, click trails, and emails
+        - Documents, periodicals, books
+        - Scientific research data (ie simulations or human genome data)
+        - Stock transactions, customer data, retail purchases
+        - Telecommunications data like phone records
+        - Public records
+        - IOT data
+        - Real-time sensor data
+
+
+
+- Hadoop as a Data Lake
+
+    - Data Lake 
+
+        - Schema-on-read
+        - Vast repository for raw data, use it as needed
+        - All data remains available, no need to make assumptions about future use
+        - Add data is sharable, not compartmentalized
+        - All access methods are available (ie MapReduce, graph processing, etc)
+
+
+    - Data Warehouse
+
+        - Schema-on-write with ETL and predetermined schema
+        - Valuable business tool, will not be replaced by Hadoop
+
+
+
+- Hadoop v1 vs v2
+
+    - Hadoop v1
+
+        - Only meant for MapReduce jobs
+        - Task scheduler and MapReduce engine were a single component
+        - Only Java could be used
+
+
+    - Hadoop v2
+
+        - Scheduling and resource management are separate from jobs running
+        - MapReduce is a separate application that runs on YARN
+        - YARN presents a generalized interface for any application framework
+
+
+
+- MapReduce Example
+
+    We load 'War and Peace' and we want to find out how many times the word 'Kutuzov' appears.
+
+      [Load Step]
+      Load file into HDFS, it is sliced and added to nodes
+
+      [Map Step]
+      The number of times 'Kutuzov' appears on each node is tallied.
+
+      [Reduce Step]
+      The counts from each node are summed into the output value.
