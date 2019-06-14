@@ -98,6 +98,9 @@ CHAPTER 1 - BACKGROUND AND CONCEPTS
         - Only meant for MapReduce jobs
         - Task scheduler and MapReduce engine were a single component
         - Only Java could be used
+        - Maximum cluster size was 4000 nodes
+        - Job tracker failure killed all running and queued jobs
+        - Iterative applications were 10x slower
 
 
     - Hadoop v2
@@ -116,7 +119,75 @@ CHAPTER 1 - BACKGROUND AND CONCEPTS
       Load file into HDFS, it is sliced and added to nodes
 
       [Map Step]
+      User query is 'mapped' to all slices.
       The number of times 'Kutuzov' appears on each node is tallied.
 
       [Reduce Step]
+      Results are 'reduced' to all slices.
       The counts from each node are summed into the output value.
+
+
+
+- MapReduce Advantages
+
+    - Uses a 'functional approach' because the original input data does not change.  The steps
+        only create new data.
+
+    - Highly scalable (often linear scalability)
+
+    - Easily managed work flow
+
+    - Fault tolerance, a failed process can be restarted on other nodes, since inputs are 
+        immutable
+
+    - MapReduce (aka 'Data Parallel Problem' or 'SIMD') is a powerful paradigm for solving many
+        problems.
+
+
+
+- Hadoop v2 YARN Operation Design
+
+    - YARN schedules and manages all jobs on the cluster
+
+    - Worker nodes are managed by a NodeManager process that works with the Resource Manager
+
+    - Job resources are portioned out in containers, which are computing resources usually 
+        defined as one processing core and an amount of memory
+
+    - The Resource Manager and NodeManager have no information about the jobs.  They manage the
+        conatiners running on the cluster and are task neutral.
+
+
+    - Typical Hadoop v2 MapReduce job:
+
+        1. Clients submit jobs to YARN
+
+        2. YARN selects a node and instructs the Node Manager to start an Application Master 
+             (App Mstr)
+
+        3. The Application Master (running in a container) requests additional containers 
+             (resources) from YARN
+
+        4. The assigned containers are started and managed on the appropriate nodes by the Node
+             Managers
+
+        5. Once the Application Master and containers are connected and running, YARN and the
+             Node Managers step away from the job
+
+        6. All job progress is reported back to the Application Master
+
+        7. When a task that runs in a container is completed, the Node Manager makes the container
+             available to YARN
+
+
+    - Advantages of separating user jobs from the scheduler
+
+        - Better scale
+        - New programming models and services (ie Giraph, Spark, MPI)
+        - Improved cluster utilization
+        - Application agility
+        - Move beyond Java
+
+
+
+- 
