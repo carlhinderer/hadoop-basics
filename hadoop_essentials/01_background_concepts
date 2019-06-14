@@ -190,4 +190,102 @@ CHAPTER 1 - BACKGROUND AND CONCEPTS
 
 
 
-- 
+- The Hadoop Ecosystem
+
+    - Core Components
+
+        - HDFS
+            - redundant and highly reliable distributed filesystem
+
+        - YARN
+            - resource manager
+            - provides all scheduling and resource management
+
+        - MapReduce 
+            - YARN application framework that provides MapReduce functionality for the cluster
+            - is the basis for many higher-level tools
+
+
+    - Hadoop Database
+
+        - HCatalog
+            - table and storage management service for data created using Hadoop
+            - the table abstraction removes the need for the user to know where data is stored
+
+        - HBase
+            - is the Hadoop database
+            - distributed, scalable, column-oriented database similar to Google BigTable
+            - designed for hosting very large tables with billions of rows and millions of columns
+
+
+    - MapReduce Query Tools
+
+        - Pig
+            - high-level language that enables programmers to write complex MapReduce transformations
+            - Pig Latin defines a set of transformations on a dataset, like 'aggregate', 'join', 'sort'
+            - often used for ETL data pipelines, quick research on raw data, iterative data processing
+            - improved programming productivity over Java MapReduce jobs
+
+        - Hive
+            - data warehouse infrastructure built on top of Hadoop
+            - provides data summary, ad hoc queries, and analysis of large data sets using HiveQL
+            - transparently translates queries into MapReduce jobs that are executed in HBase
+            - is the de facto standard for interactive Sql queries over petabytes of data
+
+
+    - Data Import Export
+
+        - Sqoop
+            - tool designed for efficiently transferring bulk data between HDFS and relational DBs
+
+        - Flume
+            - distributed, reliable service for efficiently collecting, aggregating, and moving
+                large amounts of dynamic serial data (ie log data)
+
+        - Avro
+            - Serialization format for exchanging data between programs written in any language
+            - often used to connect Flume data flows
+
+
+    - Workflow Automation
+
+        - Oozie
+            - workflow/coordination system to manage multistage Hadoop jobs
+            - enables workflow decisions based on job dependencies
+            - best for designing job execution graphs
+
+        - Falcon
+            - enables automation of data movement and processing for ingest, pipeline, replication
+            - can trigger a job start when data changes or becomes available
+
+
+    - Administration
+
+        - Ambari
+            - web-based tool for provisioning, managing, monitoring Hadoop clusters
+
+
+    - YARN Application Frameworks
+
+        - Giraph
+            - graph processing
+
+        - Spark
+            - in-memory processing
+
+        - Storm
+            - stream processing
+
+
+    - Other
+
+        - ZooKeeper
+            - centralized service used by applications
+            - used for maintaining configuration, health, and other status elements on nodes
+            - maintains common objects in cluster environments (config information, etc)
+            - applications can use these services to coordinate distributed processing
+            - provides application reliability
+            - if an App Mstr dies, ZooKeeper spawns a new App Mstr to resume the tasks
+
+        - Mahout
+            - scalable ML library
