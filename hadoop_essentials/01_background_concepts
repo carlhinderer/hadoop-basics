@@ -160,24 +160,24 @@ CHAPTER 1 - BACKGROUND AND CONCEPTS
 
     - Typical Hadoop v2 MapReduce job:
 
-        1. Clients submit jobs to YARN
+        1. Clients submit jobs to Resource Manager
 
-        2. YARN selects a node and instructs the Node Manager to start an Application Master 
-             (App Mstr)
+        2. Resource Manager selects a node and instructs the Node Manager to start an Application 
+            Master (App Mstr)
 
         3. The Application Master (running in a container) requests additional containers 
-             (resources) from YARN
+             (resources) from Resource Manager
 
         4. The assigned containers are started and managed on the appropriate nodes by the Node
              Managers
 
-        5. Once the Application Master and containers are connected and running, YARN and the
-             Node Managers step away from the job
+        5. Once the Application Master and containers are connected and running, the Resource
+             Manager and the Node Managers step away from the job
 
         6. All job progress is reported back to the Application Master
 
         7. When a task that runs in a container is completed, the Node Manager makes the container
-             available to YARN
+             available to Resource Manager
 
 
     - Advantages of separating user jobs from the scheduler
