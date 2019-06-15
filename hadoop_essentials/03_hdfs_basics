@@ -1,0 +1,116 @@
+------------------------------------------------------------
+CHAPTER 3 - HDFS BASICS
+------------------------------------------------------------
+
+- HDFS Features
+
+    - HDFS was not designed as a true parallel file system.  Rather, the design assumes a large
+        file write-once/read-many model.  For instance, HDFS rigorously restricts data writing
+        to one user at a time.  All additional writes are append-only, and there is no random
+        writing to HDFS files.  Bytes are always appended to the end of a stream, and byte
+        streams are guaranteed to be stored in the order written.
+
+
+    - Design is based on Google File System.
+
+
+    - HDFS is designed for data streaming where large amounts of data are read from disk in bulk.
+        The HDFS block size is typically 64MB or 128MB.  Thus, this approach is entirely 
+        unsuitable for standard POSIX file system use.  In addition, due to the sequential 
+        nature of the data, there is no local caching mechanism.
+
+
+    - The most interesting aspect of HDFS is data locality.  HDFS is designed to work on the same
+        hardware as the compute portion of the cluster.  So, a single server node in the cluster
+        is often both a computation engine and a storage engine for the application.
+
+
+    - HDFS has a redundant design that can tolerate system failure and still provide the data
+        needed by the compute portion of the program.
+
+
+
+- HDFS Components
+
+    - The design of HDFS is based on 2 types of nodes: a NameNode and multiple DataNodes.  For
+        a minimal Hadoop installation, there needs to be a single NameNode daemon and a single
+        DataNode daemon running on at least one machine.
+
+
+    - The design is a master/slave architecture in which the master (NameNode) manages the file
+        system namespace and regulates access to files by clients.  File system namespace 
+        operations such as opening, closing, and renaming files and directories are all
+        managed by the NameNode.  The NameNode also determines the mapping of blocks to
+        DataNodes and handles DataNode failures.
+
+
+    - The slaves (DataNodes) are responsible for serving read and write requests from the file
+        system to the clients.  The NameNode manages block creation, deletion, and replication.
+
+
+    - For an example of writing,
+
+        1. A client wants to write data, so it first communicates with the NameNode and requests
+             to create a file.
+
+        2. The NameNode determines how many blocks are needed and provides the client with the
+             DataNodes that will store the data.
+
+        3. As part of the storage process, the data blocks are replicated after they are written
+             to the assigned node.  Depending on how many nodes are in the cluster, the NameNode
+             will attempt to write replicas of the data blocks on nodes that are on 
+             separate racks if possible.  If there is only one rack, the replicated blocks are
+             written to other servers in the same rack.
+
+        4. After the DataNode acknowledges that the file block replication is complete, the 
+             client closes the file and informs the NameNode that the operation is complete. 
+             Note that the NameNode does not write directly to the DataNodes.  It does, however,
+             give the client a limited amount of time to complete the operation.  If it does not
+             complete
+
+
+    - For an example of reading,
+
+        1. The client requests a file from the NameNode, which returns the best DataNodes from 
+             which to read the data.  The client then accesses the the data directly from the
+             DataNodes.
+
+        2. Thus, once the metadata has been delivered to the client, the NameNode steps back and
+             lets the conversation between the client and the DataNodes proceed.  While the data
+             transfer is progressing, the NameNode also monitors the DataNodes by listening for
+             heartbeats sent from DataNodes.  
+
+        3. The lack of a heartbeat signal indicates a potential node failure.  In such a case, 
+             the NameNode will route around the failed DataNode and begin re-replicating the 
+             now-missing blocks.  Because the file system is redundant, DataNodes can be taken
+             offline for maintenance by informing the NameNode of the DataNodes to exclude from
+             the HDFS pool.
+
+
+    - The NameNode stores all mappings between data blocks and physical DataNodes in memory.  Upon
+        startup, each DataNode provides a block report to the NameNode.  The block reports are sent
+        every 10 heartbeats.  The reports enable the NameNode to keep an up-to-date account of all
+        data blocks in the cluster.
+
+
+    - In almost all Hadoop deployments, there is a SecondaryNameNode.  It is not explicitly required,
+        but is highly recommended.  It is not an active failover node and cannot replace the primary
+        NameNode in case of failure.  It's purpose is to perform periodic checkpoints that 
+        evaluate the status of the NameNode.  
+
+      Recall that the NameNode keeps all system metadata in memory for fast access.  It also has
+        2 disk files that track changes to the metadata:
+
+          1. An image of the file system state when NameNode was started.  This file begins with
+               'fsimage_' and is used only at startup by the NameNode.
+
+          2. A series of modifications done to the file system after starting the NameNode.  These
+               files begin with 'edit_' and reflect the changes made after the 'fsimage_' file was
+               read.  
+
+      The SecondaryNameNode periodically downloads 'fsimage' and 'edits' files, joins them into a
+        new 'fsimage', and uploads the new 'fsimage' file to the NameNode.  Thus, when the NameNode
+        restarts, the 'fsimage' file is reasonably up to date, and requires only edit logs to be
+        applied since the last checkpoint.  If the SecondaryNameNode were not running, a restart of
+        the NameNode could take a prohibitively long time due to the number of changes in the file
+        system.
