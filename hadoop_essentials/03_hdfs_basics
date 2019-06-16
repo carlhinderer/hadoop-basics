@@ -379,3 +379,36 @@ CHAPTER 3 - HDFS BASICS
 
     # Check that the file is now in hdfs
     hdfs dfs -ls NOTES.txt
+
+
+
+- HDFS C Application Example
+
+    HDFS can be used in C programs by incorporating the Java Native Interface (JNI)-based API
+      for HDFS.  The library, 'libhdfs', provices a simple C API to manipulate HDFS files and the
+      file system.  'libhdfs' is normally available as part of the Hadoop installation.
+
+
+    # Load the Hadoop environment paths
+    $ . /etc/hadoop/conf/hadoop-env.sh
+
+
+    # Compile with gcc
+    $ gcc hdfs-simple-test.c -I$HADOOP_LIB/include -I$JAVA_HOME/include -L$HADOOP_LIB/lib  \
+          -L$JAVA_HOME/jre/lib/amd64/server -ljvm -lhdfs -o hdfs-simple-test
+
+
+    # Set the run-time library path
+    $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$JAVA_HOME/jre/lib/amd64/server:$HADOOP_LIB/lib
+
+
+    # Set the hadoop classpath
+    $ export CLASSPATH='hadoop classpath -glob'
+
+
+    # Run the program
+    $ /hdfs-simple-test
+
+
+    # Inspect the new file contents
+    $ hdfs dfs -cat /tmp/testfile.txt
