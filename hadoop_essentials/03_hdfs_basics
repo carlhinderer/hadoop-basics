@@ -295,3 +295,52 @@ CHAPTER 3 - HDFS BASICS
 
         2. Users can stream data directly to HDFS through the mount point.  Appending to a file 
              is supported, but random write capability is not supported.
+
+
+
+- HDFS User Commands
+
+    # Get hdfs version
+    $ hdfs version
+
+
+    # List files in hdfs
+    $ hdfs dfs -ls /
+
+
+    # List files in home directory
+    $ hdfs dfs -ls
+    $ ddfs dfs -ls /user/hdfs
+
+
+    # Create a directory in hdfs
+    $ hdfs dfs -mkdir stuff
+
+
+    # Copy files to hdfs (file 'test' is copied to directory 'stuff')
+    $ hdfs dfs -put test stuff
+
+
+    # Confirm that the file transfer occurred
+    $ hdfs dfs -ls stuff
+
+
+    # Copy files from hdfs
+    $ hdfs dfs -get stuff/test test-local
+
+
+    # Copy files within hdfs
+    $ hdfs dfs -cp stuff/test test.hdfs
+
+
+    # Delete a file within hdfs
+    $ hdfs dfs -rm test.hdfs
+    $ hdfs dfs -rm -skipTrash test.hdfs
+
+
+    # Delete a directory in hdfs
+    $ hdfs dfs -rm -r -skipTrash stuff
+
+
+    # Get an hdfs status report
+    $ hdfs dfsadmin -report
