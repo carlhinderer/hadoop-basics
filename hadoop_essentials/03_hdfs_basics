@@ -196,3 +196,102 @@ CHAPTER 3 - HDFS BASICS
     - HDFS can be made rack-aware by using a user-derived script that enables the master node to map 
         the network topology of the cluster. A default Hadoop installation assumes all the nodes belong 
         to the same (large) rack. In that case, there is no option 3.
+
+
+
+- NameNode High Availability
+
+    - With early Hadoop installations, the NameNode was a single point of failure that could bring 
+        down the entire Hadoop cluster.  NameNode hardware often employed redundant power supplies 
+        and storage to guard against such problems, but it was still susceptible to other failures.
+        The solution was to implement NameNode High Availability as a means to provide true failover
+        service.
+
+
+    - A HA Hadoop cluster has 2 or more separate NameNode machines.  Each machine is configured with
+        the exact same software.  One of the machines is in an Active state, and the other is in a
+        Standby state.  The Active NameNode is resposible for all client HDFS operations in the 
+        cluster.  The Standby NameNode maintains enough state to provide a fast failover.
+
+
+    - To guarantee the file system is preserved, both the Active and Standby NameNodes receive block
+        reports from the DataNodes.  The Active node also sends all file system edits to a quorum of
+        Journal nodes.  The Standby node continuously reads the edits from the JournalNodes to ensure
+        its namespace is synchronized with that of the Active node.
+
+
+    - Apache ZooKeeper is used to monitor the NameNode health.  ZooKeeper is a highly available service
+        for maintaining small amounts of coordination data, notifying clients of changes in that 
+        data, and monitoring clients for failures.  HDFS Failover relies on ZooKeeper for failure
+        detection and for Standby to Active NameNode election.
+
+
+
+- HDFS NameNode Federation
+
+    - Older versions of HDFS provided a single namespace for the entire cluster managed by a single
+        NameNode.  Thus, the resources of a single NameNode determined the size of the namespace.
+        Federation addresses this limitation by adding support for multiple NameNodes/namespaces
+        to the HDFS file system.
+
+
+    - The key benefits are:
+
+        1. Namespace scalability = the HDFS cluster scales horizontally
+
+        2. Better performance = adding more NameNodes scales the file system reads/writes
+
+        3. System isolation = multiple NameNodes enable different categories of applications
+
+
+
+- HDFS Checkpoints and Backups
+
+    - An HDFS BackupNode is similar to a SecondaryNameNode, but it also maintains an up-to-date
+        copy of the file system namespace both in memory and on disk.  Unlike a CheckpointNode,
+        the BackupNode does not need to download the 'fsimage' and 'edits' files from the 
+        active NameNode, because it already has an up-to-date namespace state in memory.
+
+
+    - A NameNode supports one BackupNode at a time.  No CheckpointNodes may be registered if a
+        BackupNode is in use.
+
+
+
+- HDFS Snapshots
+
+    - HDFS snapshots are similar to backups, but are created by administrators using the 
+        'hdfs dfs snapshot' command.  HDFS snapshots are read-only, point-in-time copies of the
+        file system.
+
+
+    - Snapshots have these features:
+
+        1. Snapshots can be taken of a sub-tree of the file system or the entire file system
+
+        2. Snapshots can be used for data backup, protection against user errors, and disaster
+             recover.
+
+        3. Snapshot creation is instantaneous
+
+        4. Blocks on the DataNode are not copied, because the snapshot files record the block 
+             list and file size.  There is no data copying, although it appears to the user that
+             there are duplicate files.
+
+        5. Snapshots do not adversely afect regular HDFS operations.
+
+
+
+- HDFS NFS Gateway
+
+    - The HDFS NFS Gateway supports NFSv3 and enables HDFS to be mounted as part of the client's
+        local file system.
+
+
+    - This feature offers these capabilities:
+
+        1. Users can easily download/upload files from/to the HDFS file system to/from their 
+             local file system.
+
+        2. Users can stream data directly to HDFS through the mount point.  Appending to a file 
+             is supported, but random write capability is not supported.
