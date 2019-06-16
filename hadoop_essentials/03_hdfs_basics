@@ -108,9 +108,91 @@ CHAPTER 3 - HDFS BASICS
                files begin with 'edit_' and reflect the changes made after the 'fsimage_' file was
                read.  
 
+      The location of these files is set by the 'dfs.namenode.name.dir' property in the 
+        'hdfs-site.xml' file.
+
       The SecondaryNameNode periodically downloads 'fsimage' and 'edits' files, joins them into a
         new 'fsimage', and uploads the new 'fsimage' file to the NameNode.  Thus, when the NameNode
         restarts, the 'fsimage' file is reasonably up to date, and requires only edit logs to be
         applied since the last checkpoint.  If the SecondaryNameNode were not running, a restart of
         the NameNode could take a prohibitively long time due to the number of changes in the file
         system.
+
+
+
+- HDFS Block Replication
+
+    - When HDFS writes a file, it is replicated across the cluster.  The amount of replication is 
+        based on the value of 'dfs.replication' in the 'hdfs-site.xml' file.  This default value
+        can be overruled with the 'dfs-setrep' command.
+
+
+    - For Hadoop clusters containing more than 8 DataNodes, the replication value is usually set
+        to 3.  For a cluster with 2-8 DataNodes, the default is 2.  
+
+
+    - If several machines must be involved in the serving of a file, then a file could be rendered
+        unavailable by the loss of any of those machines.  HDFS combats this problem by replicating
+        each block across a number of machines.
+
+
+    - The HDFS default block size is 64MB.  In a typical OS, the block size is 4KB or 8KB.  The
+        HDFS default block size is not the minimum block size, however.  If a 20KB file is written
+        to HDFS, it will create a block that is approximately 20KB in size.  If a file of size
+        80MB is written to HDFS, a 64MB block and a 16MB block will be created.
+
+
+    - HDFS blocks are not exactly the same as the data splits used by the MapReduce process. The 
+        HDFS blocks are based on size, while the splits are based on a logical partitioning of the 
+        data. For instance, if a file contains discrete records, the logical split ensures that a 
+        record is not split physically across two separate servers during processing. Each HDFS 
+        block may consist of one or more splits.
+
+
+
+- HDFS Safe Mode
+
+    - When the NameNode starts, it enters a read-only safe mode where blocks cannot be replicated 
+        or deleted. Safe Mode enables the NameNode to perform two important processes:
+
+        1. The previous file system state is reconstructed by loading the fsimage file into memory 
+             and replaying the edit log.
+
+        2. The mapping between blocks and data nodes is created by waiting for enough of the 
+             DataNodes to register so that at least one copy of the data is available. Not all 
+             DataNodes are required to register before HDFS exits from Safe Mode. The registration 
+             process may continue for some time.
+
+
+    - HDFS may also enter Safe Mode for maintenance using the 'hdfs dfsadmin-safemode' command or 
+        when there is a file system issue that maust be addressed by the administrator.
+
+
+
+- Rack Awareness
+
+    - Rack awareness deals with data locality. Recall that one of the main design goals of Hadoop 
+        MapReduce is to move the computation to the data. Assuming that most data center networks 
+        do not offer full bisection bandwidth, a typical Hadoop cluster will exhibit three levels 
+        of data locality:
+
+        1. Data resides on the local machine (best).
+
+        2. Data resides in the same rack (better).
+
+        3. Data resides in a different rack (good).
+
+
+    - When the YARN scheduler is assigning MapReduce containers to work as mappers, it will try to 
+        place the container first on the local machine, then on the same rack, and finally on another 
+        rack.
+
+
+    - In addition, the NameNode tries to place replicated data blocks on multiple racks for improved 
+        fault tolerance. In such a case, an entire rack failure will not cause data loss or stop HDFS 
+        from working. Performance may be degraded, however.
+
+
+    - HDFS can be made rack-aware by using a user-derived script that enables the master node to map 
+        the network topology of the cluster. A default Hadoop installation assumes all the nodes belong 
+        to the same (large) rack. In that case, there is no option 3.
