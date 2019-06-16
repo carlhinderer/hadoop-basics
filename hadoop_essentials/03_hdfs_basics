@@ -344,3 +344,38 @@ CHAPTER 3 - HDFS BASICS
 
     # Get an hdfs status report
     $ hdfs dfsadmin -report
+
+
+
+- HDFS Java Application Example
+
+    Here, we have the java application 'HadoopDFSFileReadWrite.java' and we'll go through the
+      steps needed to build and run it.
+
+    To be able to read or write to HDFS in a Java application, you need to create a 
+      'Configuration' object and pass configuration parameters.  This example assumes that the
+      Hadoop configuration files are in '/etc/hadoop.conf'.
+
+
+    # First, create a directory to hold the classes
+    $ mkdir HDFSClient-classes
+
+
+    # Compile the program using 'hadoop classpath' to ensure all the class paths are available
+    $ javac -cp 'hadoop classpath' -d HDFSClient-classes HDFSClient.java
+
+
+    # Create a Java archive file
+    $ jar -cvfe HDFSClient.jar org/myorg.HDFSClient -C HDFSClient-classes/ .
+
+
+    # Run to check for available options
+    $ hadoop jar ./HDFSClient.jar
+
+
+    # Copy file from local system to hdfs
+    $ hadoop jar ./HDFSClient.jar add ./NOTES.txt /user/hdfs
+
+
+    # Check that the file is now in hdfs
+    hdfs dfs -ls NOTES.txt
