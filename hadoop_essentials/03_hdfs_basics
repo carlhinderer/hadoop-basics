@@ -362,7 +362,7 @@ CHAPTER 3 - HDFS BASICS
 
 
     # Compile the program using 'hadoop classpath' to ensure all the class paths are available
-    $ javac -cp 'hadoop classpath' -d HDFSClient-classes HDFSClient.java
+    $ javac -cp `hadoop classpath` -d HDFSClient-classes HDFSClient.java
 
 
     # Create a Java archive file

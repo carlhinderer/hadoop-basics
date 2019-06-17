@@ -148,7 +148,7 @@ public class HDFSClient {
         HDFSClient client = new HDFSClient();
         if (args[0].equals("add")) {
             if (args.length < 3) {
-                System.out.println("Usage: hdfsclient add <local_path> " 
+                System.out.println("Usage: hdfsclient add <local_path> " +
                 "<hdfs_path>");
                 System.exit(1);
             }
