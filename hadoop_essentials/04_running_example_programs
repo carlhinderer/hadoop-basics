@@ -46,3 +46,79 @@ CHAPTER 4 - RUNNING EXAMPLE PROGRAMS
 
     - This interface can be opened directly from the Ambari YARN service 'Quick Links' menu or
         by navigating to http://hostname:8088.
+
+
+
+- Running Basic Hadoop Benchmarks
+
+    - Many Hadoop benchmarks can provide real insight into cluster performance.  The 2 benchmarks
+        discussed in this section, 'terasort' and 'TestDFSIO', provide a good sense of how well your
+        Hadoop installation is operating and can be compared with public data published for other
+        Hadoop systems.
+
+
+
+- Running the Terasort Test
+
+    - The 'terasort' benchmark sorts a specified amount of randomly generated data.  This benchmark
+        provides combined testing of the HDFS and MapReduce layers of a Hadoop cluster.  A full
+        'terasort' benchmark run consists of the following 3 steps:
+
+          1. Generating the input data via 'teragen' program
+
+          2. Running the actual 'terasort' benchmark on the input data
+
+          3. Validating the sorted output data via the 'terravalidate' program
+
+
+    - The following series of commands will run the benchmark for 50GB of data as user 'hdfs'.
+        Make sure the '/user/hdfs' directory exists in HDFS before running the benchmarks.
+
+        # Run teragen to generate rows of random data to sort
+        $ yarn jar $HADOOP_EXAMPLES/hadoop-mapreduce-examples.jar teragen 500000000 \
+            /user/hdfs/TeraGen-50GB
+
+
+        # Run terasort to sort the database
+        $ yarn jar $HADOOP_EXAMPLES/hadoop-mapreduce-examples.jar terasort \
+            /user/hdfs/TeraGen-50GB /user/hdfs/TeraSort-50GB
+
+
+        # Run teravalidate to validate the sort
+        $ yarn jar $HADOOP_EXAMPLES/hadoop-mapreduce-examples.jar teravalidate \
+            /user/hdfs/TeraSort-50GB /user/hdfs/TeraValid-50GB
+
+
+        # Delete the generated files
+        $ hdfs dfs -rm -r -skipTrash Tera*
+
+
+
+- Running the TestDFSIO Benchmark
+
+    - Hadoop also includes an HDFS benchmark application called 'TestDFSIO', which is a read and
+        write test for HDFS.  It will write or read a number of files to and from HDFS and is
+        designed in such a way that is will use one map task per file.  The file size and number
+        of files are specified as command-line arguments.
+
+
+    - Running the 'TestDFSIO' benchmark consists of the following steps:
+
+        # Run TestDFSIO in write mode and create data
+        $ yarn jar $HADOOP_EXAMPLES/hadoop-mapreduce-client-jobclient-tests.jar TestDFSIO \
+            -write  -nrFiles 16 -fileSize 1000
+
+
+        # Run TestDFSIO in read mode
+        $ yarn jar  $HADOOP_EXAMPLES/hadoop-mapreduce-client-jobclient-tests.jar TestDFSIO \
+            -read  -nrFiles 16 -fileSize 1000
+
+
+        # Clean up the TestDFSIO data
+        $ yarn jar  $HADOOP_EXAMPLES/hadoop-mapreduce-client-jobclient-tests.jar TestDFSIO -clean
+
+
+
+- Managing Hadoop MapReduce Jobs
+
+    - 

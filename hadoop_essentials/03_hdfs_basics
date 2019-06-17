@@ -354,7 +354,7 @@ CHAPTER 3 - HDFS BASICS
 
     To be able to read or write to HDFS in a Java application, you need to create a 
       'Configuration' object and pass configuration parameters.  This example assumes that the
-      Hadoop configuration files are in '/etc/hadoop.conf'.
+      Hadoop configuration files are in '/etc/hadoop/conf'.
 
 
     # First, create a directory to hold the classes
