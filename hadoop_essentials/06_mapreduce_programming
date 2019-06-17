@@ -318,3 +318,53 @@ CHAPTER 6 - MAPREDUCE PROGRAMMING
          $ hdfs dfs -cat war-and-peace-output/part-r-00000
 
          530    Kutuzov
+
+
+
+- Debugging MapReduce
+
+    - The best advice for debugging parallel MapReduce applications is this: Don't!!  Debugging
+        on a distributed system is hard and should be avoided at all costs.  The best approach
+        is to make sure applications run on a simpler system (ie the HDP Sandbox or the
+        pseudo-distributed single machine install) with smaller data sets.  Errors on these
+        systems are much easier to locate and track.
+
+
+    - In addition, unit testing applications before running at scale is important.  If 
+        applications can run successfully on a single system with a subset of real data, then
+        running in parallel should be a simple task since the MapReduce algorithm is 
+        transparently scalable.  Note that many higher-level tools (ie Pig and Hive) enable local
+        mode development for this reason.
+
+
+    - When investigating program behavior at scale, the best approach is to use the application
+        logs to inspect the actual MapReduce progress.
+
+
+
+- Hadoop Log Management
+
+    - The MapReduce logs provide a comprehensive listing of both mappers and reducers.  The actual
+        log output consists of 3 files - 'stdout', 'stderr', and 'syslog' (Hadoop system messages)
+        for the application.
+
+
+    - There are 2 modes for log storage:
+
+        1. The first (and best) method is to use log aggregation.  In this mode, logs are 
+             aggregated in HDFS and can be displayed in the YARN ResourceManager interface
+             or examined with the 'yarn logs' command.  Log aggregation is highly recommended.
+
+        2. If log aggregation is not enabled, the logs will be placed locally on the cluster nodes
+             on which the mapper or reducer ran.  The location of the unaggregated local logs is
+             given by the 'yarn.nodemanager.log-dirs' property in the 'yarn-site.xml' file.
+
+
+    - The most convenient way to view logs is to use the YARN ResourceManager web user interface.
+        If log aggregation is enabled, the contents of 'stdout', 'stderr', and 'syslog' will be 
+        displayed on a single page.  If log aggregation is not enabled, a message stating that the 
+        logs are not available will be shown.
+
+
+    - If log aggregation is enabled, the 'yarn logs' command can also be views to view MapReduce
+        logs from the command line.
