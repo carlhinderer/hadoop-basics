@@ -242,3 +242,52 @@ CHAPTER 5 - HADOOP MAPREDUCE FRAMEWORK
 
           run, 2
           spot, 1
+
+
+
+- Fault Tolerance
+
+    - One of the most interesting aspects of parallel MapReduce operation is the strict control
+        of data flow throughout the execution of the program.  Mapper processes do not exchange 
+        data with other mapper processes.  Data can only go from mappers to reducers, not the other
+        direction.  The confined data flow enables MapReduce to operate in a fault-tolerant fashion.
+
+
+    - MapReduce can easily recover from the failure of one or many map processes.  If a server fails,
+        the map tasks that were running on that machine could easily be restarted on another
+        working server because there is no dependence on any other map task.  
+
+
+    - In a similar fashion, failed reducers can be restarted.  However, there may be additional work
+        that has to be redone in such a case.  A completed reduce tasks writes results to HDFS.  If
+        a node fails after this point, the MapReduce ApplicationMaster will need to restart the
+        reducer tasks.  If the mapper output is not available for the newly restarted reducer, then
+        these map tasks will need to be restarted.
+
+
+
+- Speculative Execution
+
+    - One of the many challenges with large clusters is the inability to predict or manage
+        unexpected system bottlenecks or failures.  In theory, it is possible to control and
+        monitor resources so that network traffic and processor load can be evenly balanced.
+        In practice, this problem represents a difficult challenge for large systems.  Thus,
+        it is possible that a congested network, failing disk, high processor load, or some
+        other problem might lead to slow performance.
+
+
+    - When one part of a MapReduce process runs slowly, it ultimately slows down everything,
+        since the application cannot complete until all processes are finished.  The nature of
+        the parallel MapReduce model provides an interesting solution to this problem.  Since all
+        input data are immutable, it is possible to start a copy of a running map process without
+        disturbing any other running mapper processes.
+
+
+    - Suppose that as most of the map tasks are coming to a close, the ApplicationMaster notices
+        that some are still running and schedules redundant copies of the remaining nodes on less
+        busy or free servers.  Should the secondary processes finish first, the other processes
+        are then terminated (or vice versa).  This process is known as 'speculative execution'.
+        The same approach can be applied to reducer processes that are taking a long time.
+
+
+    - Speculative execution can be enabled or disabled in the 'mapred-site.xml' config file.
