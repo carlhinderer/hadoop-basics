@@ -121,4 +121,17 @@ CHAPTER 4 - RUNNING EXAMPLE PROGRAMS
 
 - Managing Hadoop MapReduce Jobs
 
-    - 
+    - Hadoop MapReduce jobs can be managed using the 'mapred job' command.  The most important
+        options for this command are '-list', '-kill', and '-status'.  
+
+
+        # Get all of the job-ids
+        $ mapred job -list
+
+
+        # Get the status of a job
+        $ mapred job -status <job-id>
+
+
+        # Kill a job
+        $ mapred job -kill <job-id>
