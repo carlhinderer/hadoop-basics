@@ -247,3 +247,74 @@ CHAPTER 6 - MAPREDUCE PROGRAMMING
 
 
          6. The program should produce the same output in the 'war-and-peace-output' directory.
+
+
+
+- Hadoop Grep Chaining Example
+
+    - The Hadoop 'Grep.java' example extracts matching strings from text files and counts how many
+        times they have occurred.
+
+
+    - The program runs 2 map/reduce jobs in sequence and is an example of 'MapReduce chaining'.
+        The first job counts how many times a matching string occurs in the input, and the second
+        job sorts matching strings by their frequency and stores the output in a single file.
+
+
+    - In the example, each mapper of the first job takes a line as input and matches the 
+        user-provided regular expression against the line.  The 'RegexMapper' class is used to
+        perform this task and extracts task matching using the given regular expression.
+
+      The matching strings are output as < matching_string, 1> pairs.  As in the previous WordCount
+        example, each reducer sums up the number of matching strings and employs a combiner to
+        do local sums.  The actual reducer uses the 'LongSumReducer' class that outputs the sum of
+        long values per reducer input key.
+
+
+    - The second job takes the output of the first job as input.  The mapper is an inverse map that
+        reverses its input <key, value> pairs into <value, key> pairs.  There is not reduction step, 
+        so the 'IdentityReducer' class is used by default.  All input is simply passed to the
+        output.  The number of reducers is set to 1, so the output is stored in one file and is 
+        sorted by count in descending order.  The output text file contains a count and a string
+        per line.
+
+
+    - The example also demonstrates how to pass a command-line parameter to a mapper or reducer.
+
+
+
+- Compiling and Running the Grep.java example
+
+    1. Create a directory for the application classes:
+
+         $ mkdir Grep_classes
+
+
+    2. Compile the WordCount.java program using the following line:
+
+         $ javac -cp `hadoop classpath` -d Grep_classes Grep.java
+
+
+    3. Create a java archive:
+
+         $ jar -cvf Grep.jar -C Grep_classes/ .
+
+
+    4. If needed, create a directory and add the 'war-and-peace.txt' file.
+
+         $ hdfs dfs -mkdir war-and-peace-input
+         $ hdfs dfs -put war-and-peace.txt war-and-peace-input
+         $ hdfs dfs -rm -r -skipTrash war-and-peace-output
+
+
+    5. Run the Grep program:
+
+         $ hadoop jar Grep.jar org.apache.hadoop.examples.Grep war-and-peace-input \
+               war-and-peace-output Kutuzov
+
+
+    6. To see, the output, examine the output file:
+
+         $ hdfs dfs -cat war-and-peace-output/part-r-00000
+
+         530    Kutuzov
