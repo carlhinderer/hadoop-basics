@@ -107,3 +107,87 @@ CHAPTER 6 - MAPREDUCE PROGRAMMING
          contents can be removed:
 
          $ hdfs dfs -rm -r -skipTrash war-and-peace-output
+
+
+
+- Using the Streaming Interface
+
+    - The Apache Hadoop streaming interface enables almost any program to use the MapReduce engine.
+        The 'streams' interface will work with any program that can read and write to 'stdin' and
+        'stdout'.  
+
+
+    - When working in the Hadoop streaming mode, only the mapper and the reducer are created by the
+        user.  This approach does have the advantage that the mapper and the reducer can be easily
+        tested from the command line.  In this example, a Python mapper and reducer, 'mapper.py'
+        and 'reducer.py' will be used.
+
+
+    - To observe the operation of the 'mapper.py' script:
+
+        $ echo "foo foo quux labs foo bar quux" | ./mapper.py
+
+        Foo     1
+        Foo     1
+        Quux    1
+        Labs    1
+        Foo     1
+        Bar     1
+        Quux    1
+
+
+    - Piping the results of the map into the 'sort' command can create a simulated shuffle phase:
+
+        $ echo "foo foo quux labs foo bar quux" | ./mapper.py|sort -k1,1
+
+        Bar     1
+        Foo     1
+        Foo     1
+        Foo     1
+        Labs    1
+        Quux    1
+        Quux    1
+
+
+    - Finally, the full MapReduce process can be simulated by adding the 'reducer.py' script to the
+        following command pipeline:
+
+        $ echo "foo foo quux labs foo bar quux" | ./mapper.py|sort -k1,1|./reducer.py
+
+        Bar     1
+        Foo     3
+        Labs    1
+        Quux    2
+
+
+    - To run this application using a Hadoop installation, 
+
+        # Create the directory for 'War and Peace' input and remove the previous output
+
+        $ hdfs dfs -mkdir war-and-peace-input
+        $ hdfs dfs -put war-and-peace.txt war-and-peace-input
+        $ hdfs dfs -rm -r -skipTrash war-and-peace-output
+
+
+        # Locate the 'hadoop-streaming.jar' file in your distribution and call it
+
+        $ hadoop jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
+            -file ./mapper.py \
+            -mapper ./mapper.py \
+            -file ./reducer.py -reducer ./reducer.py \
+            -input war-and-peace-input/war-and-peace.txt \
+            -output war-and-peace-output
+
+
+        # The output should be the same as with WordCount.java
+
+
+    - Note that the Python scripts used in this example could be Bash, Perl, Tcl, Awk, compiled
+        C code, or any language that can read from 'stdin' and 'stdout'.
+
+
+    - Although the streaming interface is rather simple, it does have some disadvantages over using
+        Java directly.  In particular, not all applications are string and character based, and it
+        would be awkward to try and use 'stdin' and 'stdout' as a way to transmit binary data.
+        Another disadvantage is that many tuning parameters available through the full Java
+        Hadoop API are not available in streaming.
