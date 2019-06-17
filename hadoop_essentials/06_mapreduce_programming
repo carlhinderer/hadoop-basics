@@ -54,3 +54,56 @@ CHAPTER 6 - MAPREDUCE PROGRAMMING
         < Hadoop, 2>
         < Hello, 2>
         < World, 2>
+
+
+
+- Compiling and Running the Hadoop WordCount Example
+
+    1. Make a local 'wordcount_classes' directory
+
+         $ mkdir wordcount_classes
+
+
+    2. Compile the 'WordCount.java' program using the 'hadoop classpath' command to include
+         all the available Hadoop class paths.
+
+         $ javac -cp `hadoop classpath` -d wordcount_classes WordCount.java
+
+
+    3. The jar file can be created using the following command:
+
+         $ jar -cvf wordcount.jar -C wordcount_classes/
+
+
+    4. To run the example, create an input directory in HDFS and place a text file in the new
+         directory.  For this example, we will use the 'war-and-peace.txt' file.
+
+         $ hdfs dfs -mkdir war-and-peace-input
+         $ hdfs dfs -put war-and-peace.txt war-and-peace-input
+
+
+    5. Run the WordCount application.
+
+         $ hadoop jar wordcount.jar WordCount war-and-peace-input war-and-peace-output
+
+
+    6. If the job ran correctly, there should be 'war-and-peace-output' directory.  The following
+         files should be in the directory:
+
+         $ hdfs dfs -ls war-and-peace-output
+
+           Found 2 items
+           -rw-r--r--   2 hdfs hdfs          0 2015-05-24 11:14 war-and-peace-output/_SUCCESS
+           -rw-r--r--   2 hdfs hdfs     467839 2015-05-24 11:14 war-and-peace-output/part-r-00000
+
+
+    7. The complete list of word counts can be copied from HDFS to the working directory:
+
+         $ hdfs dfs -get war-and-peace-output/part-r-00000.
+
+
+    8. If the WordCount program is run again using the same outputs, it will fail when it tries
+         to overwrite the 'war-and-peace-output' directory.  The output directory and all of its
+         contents can be removed:
+
+         $ hdfs dfs -rm -r -skipTrash war-and-peace-output
