@@ -1,0 +1,56 @@
+------------------------------------------------------------
+CHAPTER 6 - MAPREDUCE PROGRAMMING
+------------------------------------------------------------
+
+- The Hadoop WordCount Example
+
+    - The 'WordCount.java' program is the Hadoop MapReduce equivalent of 'Hello World'.  WordCount
+        is a simple application that counts the number of occurrences of each word in a given input
+        set.
+
+
+    - The 'map' method processes one line at a time as provided by the specified 'TextInputFormat' 
+        class.  It then splits the line into tokens separated by whitespaces using the 
+        'StringTokenizer' and emits a key-value pair of <word, 1>.
+
+      Given 2 input files with contents 'Hello World Bye World' and 'Hello Hadoop Goodbye Hadoop', the
+        WordCount mapper will produce 2 maps:
+
+          < Hello, 1>
+          < World, 1>
+          < Bye, 1>
+          < World, 1>
+
+          < Hello, 1>
+          < Hadoop, 1>
+          < Goodbye, 1>
+          < Hadoop, 1>
+
+
+    - WordCount sets a mapper, a combiner, and a reducer:
+
+        job.setMapperClass(TokenizerMapper.class);
+        job.setCombinerClass(IntSumReducer.class);
+        job.setReducerClass(IntSumReducer.class);
+      
+      Here, the output of each map is passed through the local combiner for local aggregation and then
+        sends the data onto the final reducer.  Thus, each map above the combiner performs the 
+        following pre-reductions:
+
+        < Bye, 1>
+        < Hello, 1>
+        < World, 2>
+
+        < Goodbye, 1>
+        < Hadoop, 2>
+        < Hello, 1>
+
+
+    - The 'reduce' method simply sums the values, which are the occurrence counts for each key.  
+        The final output of the reducer is:
+
+        < Bye, 1>
+        < Goodbye, 1>
+        < Hadoop, 2>
+        < Hello, 2>
+        < World, 2>
