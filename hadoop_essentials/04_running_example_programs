@@ -1,0 +1,48 @@
+------------------------------------------------------------
+CHAPTER 4 - RUNNING EXAMPLE PROGRAMS
+------------------------------------------------------------
+
+- Running MapReduce Examples
+
+    - All Hadoop releases come with MapReduce example applications.  Often, they are under
+        '/opt/', but sometimes they are in other directories.  
+
+        # Maybe theyre in /opt
+        $ ls /opt/hadoop-2.6.0/share/hadoop/mapreduce/
+
+
+        # Find the mapreduce examples
+        $ find / -name "hadoop-mapreduce-examples*.jar" -print
+
+
+    - In our sample environment (HDP 2.2 with Hadoop 2.6), the location of the examples is
+        '/usr/hdp/2.2.4.2-2/hadoop-mapreduce'.  For the purposes of this example, we'll define
+        an environment variable to make it easier.
+
+        # Define environment variable for mapreduce examples
+        $ export HADOOP_EXAMPLES=/usr/hdp/2.2.4.2-2/hadoop-mapreduce
+
+
+    - To list the available examples, we can use the following command.  For our example, we will
+        run the 'pi' and 'terasort' examples.
+
+        # List example mapreduce applications
+        $ yarn jar $HADOOP_EXAMPLES/hadoop-mapreduce-examples.jar
+
+
+    - To run the 'PI' example, we can use the following command.  
+
+        # Run the pi example
+        $ yarn jar $HADOOP_EXAMPLES/hadoop-mapreduce-examples.jar pi 16 1000000
+
+
+
+- Using the Web GUI to Monitor Examples
+
+    - We can use the YARN ResourceManager web GUI to monitor and find information about YARN jobs.
+        A menu on the left provides navigation to the nodes table, various job categories, and the
+        Capacity Scheduler.  
+
+
+    - This interface can be opened directly from the Ambari YARN service 'Quick Links' menu or
+        by navigating to http://hostname:8088.
