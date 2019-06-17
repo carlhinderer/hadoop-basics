@@ -191,3 +191,59 @@ CHAPTER 6 - MAPREDUCE PROGRAMMING
         would be awkward to try and use 'stdin' and 'stdout' as a way to transmit binary data.
         Another disadvantage is that many tuning parameters available through the full Java
         Hadoop API are not available in streaming.
+
+
+
+- Using the Pipes Interface
+
+    - 'Pipes' is a library that allows C++ source code to be used for mapper and reducer code.  
+        Applications that require high performance when crunching numbers may actually achieve
+        better throughput if written with C++ and the 'Pipes' interface.
+
+
+    - Both key and value inputs to pipes programs are provided as STL strings (std::string).
+        The program must define an instance of a mapper and an instance of a reducer.  A program
+        to use with 'Pipes' is defined by writing classes extending 'Mapper' and 'Reducer'.  Hadoop
+        must then be informed as to which classes to use to run the job.
+
+
+    - The 'Pipes' framework on each machine assigned to your job will start an instance of your C++
+         program.  Therefore, the executable must be placed in HDFS prior to use.
+
+
+    - To run 'wordcount.cpp':
+
+         1. The location of Hadoop 'include' files and libraries may need to be specified when
+              compiling the code.  If $HADOOP_HOME is defined, the following options should provide
+              the correct path.  
+
+
+         2. To compile the program:
+
+              $ g++ wordcount.cpp -o wordcount -L$HADOOP_HOME/lib/native/  \  
+                   -I$HADOOP_HOME/../usr/include -lhadooppipes -lhadooputils -lpthread -lcrypto
+
+
+         3. If needed, create the 'war-and-peace-input' directory and move the file into HDFS:
+
+              $ hdfs dfs -mkdir war-and-peace-input
+              $ hdfs dfs -put war-and-peace.txt war-and-peace-input
+              $ hdfs dfs -rm -r -skipTrash war-and-peace-output
+
+
+         4. The executable must be placed into HDFS so YARN can find the program:
+
+              $ hdfs dfs -put wordcount bin
+
+
+         5. Run the executable:
+
+              $ mapred pipes \
+                   -D hadoop.pipes.java.recordreader=true  \
+                   -D hadoop.pipes.java.recordwriter=true \
+                   -input war-and-peace-input   \
+                   -output war-and-peace-output  \
+                   -program bin/wordcount
+
+
+         6. The program should produce the same output in the 'war-and-peace-output' directory.
