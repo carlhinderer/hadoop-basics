@@ -66,3 +66,92 @@ CHAPTER 5 - HADOOP MAPREDUCE FRAMEWORK
 
 
 
+- The Functional Nature of MapReduce
+
+    - The MapReduce model is inspired by the map and reduce functions commonly used in many
+        functional programming languages.  The functional nature of MapReduce has some important
+        properties:
+
+        1. Data flow is in one direction (map to reduce).  It is possible to use the output of a
+             reduce step as the input to another MapReduce process.
+
+        2. As with functional programming, the input data are not changed.  By applying the mapping
+             and reduction functions to the input data, new data are produced.  The original state
+             of the data lake is always preserved.
+
+        3. Because there is no dependency on how the mapping and reducing functions are applied to
+             the data, the mapper and reducer data flow can be implemented in any number of ways
+             to provide better performance.
+
+
+    - Distributed (parallel) implementations of MapReduce enable large amounts of data to be analyzed
+        quickly.  In general, the mapper process is fully scalable and can be applied to any subset
+        of the input data.  Results from multiple parallel mapping functions are then combined in
+        the reducer phase.
+
+
+    - Hadoop accomplishes this parallelism by using HDFS to slice and spread data over multiple
+        servers.  Hadoop MapReduce will try to move the mapping tasks to the server that contains
+        the data slice.  Results from each data slice are then combined in the reducer step.
+
+
+    - HDFS is not required for Hadoop MapReduce, however.  A sufficiently fast parallel file system
+        can be used in its place.  In these designs, each server in the cluster has access to a 
+        high-performance parallel file system that can rapidly provide any data slice.  These designs
+        are typically more expensive than the commodity servers used for many Hadoop clusters.
+
+
+
+- MapReduce Parallel Data Flow
+
+    - Operationally, the Hadoop parallel MapReduce data flow can be quite complex.  Parallel execution
+        of MapReduce requires other steps in addition to the mapper and reducer processes.  The basic
+        steps are as follows:
+
+
+        1. Input Splits
+
+             HDFS distributes and replicates data over multiple servers.  These data slices are 
+               physical boundaries determined by HDFS and have nothing to do with the data in the
+               files.
+
+             The input splits used by MapReduce are logical boundaries based on the input data.  For
+               example, the split size can be based on the number of records in a file or the actual
+               size in bytes.  Splits are almost always smaller than the HDFS block size.  The number
+               of splits corresponds to the number of mapping processes used in the 'map' stage.
+
+
+        2. Map Step
+
+             The mapping process is where the parallel nature of Hadoop comes into play.  For large
+               amounts of data, many mappers can be operating at the same time.  The user provides
+               the specific mapping process.  MapReduce will try to execute the mapper on the 
+               machines where the block resides.  
+
+             Because the file is replicated in HDFS, the least busy node with the data will be chosen. 
+               If all nodes holding the data are too busy, MapReduce will try to pick a node that is 
+               closest to the node that hosts the data block (a characteristic called rack-awareness). 
+               The last choice is any node in the cluster that has access to HDFS.
+
+
+        3. Combiner Step
+
+             It is possible to provide an optimization or pre-reduction as part of the map stage 
+               where key–value pairs are combined prior to the next stage. The combiner stage is 
+               optional.
+
+
+        4. Shuffle Step
+
+             Before the parallel reduction stage can complete, all similar keys must be combined and 
+               counted by the same reducer process. Therefore, results of the map stage must be 
+               collected by key–value pairs and shuffled to the same reducer process. If only a single
+               reducer process is used, the shuffle stage is not needed.
+
+
+        5. Reduce Step
+
+             The final step is the actual reduction. In this stage, the data reduction is performed as 
+               per the programmer’s design. The reduce step is also optional. The results are written 
+               to HDFS. Each reducer will write an output file. For example, a MapReduce job running 
+               four reducers will create files called part-0000, part-0001, part-0002, and part-0003.
