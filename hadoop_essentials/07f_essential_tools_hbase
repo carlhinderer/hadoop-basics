@@ -1,0 +1,46 @@
+------------------------------------------------------------
+CHAPTER 7F - ESSENTIAL TOOLS - HBASE
+------------------------------------------------------------
+
+- Apache HBase
+
+    - HBase is an open source, distributed, versioned, nonrelational database modeled after Google's
+        BigTable.  Like BigTable, HBase leverages the distributed data storage provided by the 
+        underlying distributed file systems spread across commodity servers.  HBase provides 
+        BigTable-like capabilities on top of Hadoop and HDFS.  
+
+
+    - Some of the most important HBase features are:
+
+        - Linear and modular scalability
+        - Strictly consistent reads and writes
+        - Automatic and configurable sharding of tables
+        - Automatic failover support between RegionServers
+        - Convenient base classes for backing MapReduce jobs with HBase tables
+        - Easy to use Java API for client access
+
+
+
+- HBase Data Model Overview
+
+    - A table in HBase is similar to other databases, having rows and columns. Columns in HBase are 
+        grouped into column families, all with the same prefix. For example, consider a table of daily 
+        stock prices. There may be a column family called “price” that has four members—price:open, 
+        price:close, price:low, and price:high. 
+
+
+    - A column does not need to be a family. For instance, the stock table may have a column named 
+        “volume” indicating how many shares were traded. All column family members are stored together 
+        in the physical file system.
+
+
+    - Specific HBase cell values are identified by a row key, column (column family and column), and 
+        version (timestamp). It is possible to have many versions of data within an HBase cell. A version 
+        is specified as a timestamp and is created each time data are written to a cell. Almost anything 
+        can serve as a row key, from strings to binary representations of longs to serialized data
+        structures. 
+
+
+    - Rows are lexicographically sorted with the lowest order appearing first in a table. The empty byte
+        array denotes both the start and the end of a table’s namespace. All table accesses are via the 
+        table row key, which is considered its primary key. 
