@@ -76,3 +76,82 @@ CHAPTER 7E - ESSENTIAL TOOLS - OOZIE
                                                                       |
                                                                       v
                                                                      end
+
+
+
+- Download Oozie Examples
+
+    # Extract and rename the example files
+    $ tar xvzf /usr/hdp/2.2.4.2-2/oozie/doc/oozie-examples.tar.gz
+    $ mv examples oozie-examples
+
+
+    # Move the example files into HDFS
+    $ hdfs dfs -put oozie-examples/ oozie-examples
+
+
+    The example applications are found under the 'oozie-examples/app' directory, one directory per 
+      example. Each directory contains at least 'workflow.xml' and 'job.properties' files. Other 
+      files needed for each example are also in its directory. The inputs for all examples are in the
+      'oozie-examples/input-data' directory. The examples will create output under the 
+      'examples/output-data' directory in HDFS.
+
+
+
+- Updating the Oozie Config Files
+
+    # Move to the simple MapReduce example directory
+    $ cd oozie-examples/apps/map-reduce/
+
+
+    This directory contains 2 files and a 'lib' directory:
+
+      1. The 'job.properties' file defines parameters (eg path names, ports) for a job.  This file
+           may change per job.
+
+      2. The 'workflow.xml' file provides the actual workflow for the job.  In this case, it is a
+           simple MapReduce (pass/fail).  This file usually stays the same between jobs.
+
+
+    The 'job.properties' file included with the examples requires a few edits to work properly.
+      Let's change the following lines:
+
+
+    # Change the host name of the NameNode and ResourceManager
+    nameNode=hdfs://_HOSTNAME_:8020
+    jobTracker=_HOSTNAME_:8050
+
+
+    # Change the examplesRoot to reflect the changes made previously
+    examplesRoot=oozie-examples
+
+
+    These changes must be done for all the 'job.properties' files in the Oozie examples we choose
+      to run.
+
+
+
+- Running the Simple MapReduce Example
+
+    Our 'workflow.xml' file has the following workflow nodes:
+
+      <start to="mr-node"/>
+      <action name="mr-node">
+      <kill name="fail">
+      <end name="end"/>
+
+
+    # Run the Oozie MapReduce example job
+    $ oozie job -run -oozie http://limulus:11000/oozie -config job.properties
+
+    job: 0000001-150424174853048-oozie-oozi-W
+
+
+    # To avoid having to provide the -oozie option with the Oozie URL every time we run the
+    #   oozie command, we can set the OOZIE_URL environment variable
+    $ $ export OOZIE_URL="http://limulus:11000/oozie"
+
+
+    # Get status of a particular job
+    $ oozie job -info 0000001-150424174853048-oozie-oozi-W
+
