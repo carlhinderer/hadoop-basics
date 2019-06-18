@@ -43,3 +43,51 @@ CHAPTER 7C - ESSENTIAL TOOLS - SQOOP
       In contrast, Sqoop v2 no longer supports specialized connectors or direct imports/exports into 
         HBase or Hive.  All imports and exports are done through the JDBC interface.  Any new 
         development should be done with Sqoop v2.
+
+
+
+- Downloading Sqoop and Loading Sample MySql Database
+
+    # Install sqoop if its not already installed
+    $ yum install sqoop sqoop-metast
+
+
+    # Get the world example database, which has 3 tables:
+    #   1. Country = countries of the world
+    #   2. City = information about cities in those countries
+    #   3. CountryLanguage = languages spoken in each country
+
+    $ wget http://downloads.mysql.com/docs/world_innodb.sql.gz
+    $ gunzip world_innodb.sql
+
+
+    # Log into mysql and import the database
+    $ mysql -u root
+
+    mysql> CREATE DATABASE world;
+    mysql> USE world;
+    mysql> SOURCE world_innodb.sql;
+    mysql> SHOW TABL
+
+
+    # Look at the details of each table
+    mysql> SHOW CREATE TABLE Country;
+    mysql> SHOW CREATE TABLE City;
+    mysql> SHOW CREATE TABLE CountryLanguage;
+
+
+
+- Adding Sqoop User Permissions for the Local Machine and Cluster
+
+    # Add the permissions
+    mysql> GRANT ALL PRIVILEGES ON world.* To 'sqoop'@'limulus' IDENTIFIED BY 'sqoop';
+    mysql> GRANT ALL PRIVILEGES ON world.* To 'sqoop'@'10.0.0.%' IDENTIFIED BY 'sqoop';
+    mysql> quit
+
+
+    # Log in as sqoop to test the permissions
+    $ mysql -u sqoop -p
+
+    mysql> USE world;
+    mysql> SHOW TABLES;
+    mysql> quit
