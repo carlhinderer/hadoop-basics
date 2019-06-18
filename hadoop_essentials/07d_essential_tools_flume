@@ -54,3 +54,87 @@ CHAPTER 7D - ESSENTIAL TOOLS - FLUME
 
     - Another useful configuration for Flume is to consolidate several data sources before committing
         them to HDFS.
+
+
+
+- Downloading and Installing Apache Flume
+
+    # Install Flume if not already installed
+    $ yum install flume flume-agent
+
+
+    # For a simple example, telnet will be used
+    $ yum install telnet
+
+
+
+- A Simple Flume Test
+
+    A simple test of Flume can be done on a single machine.  
+
+    # Start the Flume agent, using the 'simple-example.conf' file to configure the agent
+    $ flume-ng agent --conf conf --conf-file simple-example.conf --name simple_agent 
+          -Dflume.root.logger=INFO,console
+
+
+    # Use telnet to contact the agent
+    $ telnet localhost 44444
+
+    >>> testing  1 2 3
+
+
+    # If Flume is working correctly, the window where the flume agent was started will show
+    #   the testing message entered in the telnet window
+
+    14/08/14 16:20:58 INFO sink.LoggerSink: Event: { headers:{} body: 74 65 73 74 69
+                                                6E 67 20 20 31 20 32 20 33 0D    testing  1 2 3. }
+
+
+
+- Weblog Example
+
+    - In this example, a record from the weblogs from the local machine (Ambari output) will be 
+        placed into HDFS using Flume.  This example is easily modified to use other weblogs from
+        different machines.  
+
+
+    - Two files are needed for configuring Flume:
+
+        - 'web-server-target-agent.conf' = the target Flume agent that writes data to HDFS
+        - 'web-server-source-agent.conf' = the source Flume agent that captures the weblog data
+
+
+      # The weblog will also be mirrored on the local file system by the agent that writes to 
+      #   HDFS.  First, we'll create this directory.
+
+      $ mkdir /var/log/flume-hdfs
+      $ chown hdfs:hadoop /var/log/flume-hdfs/
+
+
+      # Next, as user 'hdfs' make a Flume data directory in HDFS
+      $ hdfs dfs -mkdir /user/hdfs/flume-channel/
+
+
+      # Start the Flume target agent
+      $ flume-ng agent -c conf -f web-server-target-agent.conf -n collector
+
+      
+      Note, that with the HDP distribution, Flume can be started as a service when the system 
+        boots.  
+
+
+      # Start feeding the weblog data to the target agent
+      $ flume-ng agent -c conf -f web-server-source-agent.conf -n source_agent
+
+
+      # To see if Flume is working correctly, check the local log
+      $ tail -f /var/log/flume-hdfs/1430164482581-1
+
+
+      The contents of the local log under 'flume-hdfs' should be identical to that written into
+        HDFS.  You can inspect this file using the 'hdfs tail' command.  Note that while running
+        Flume, the most recent file in HDFS may have the '.tmp' extension appended, which indicates
+        that the file is still being written.  
+
+      # The file should look the same in hdfs
+      $ hdfs dfs -tail flume-channel/apache_access_combined/150427/FlumeData.1430164801381
