@@ -91,3 +91,131 @@ CHAPTER 7C - ESSENTIAL TOOLS - SQOOP
     mysql> USE world;
     mysql> SHOW TABLES;
     mysql> quit
+
+
+
+- Importing Data Using Sqoop
+
+    # As a test, use Sqoop to list databases in MySql (limulus is the local host name)
+    $ sqoop list-databases --connect jdbc:mysql://limulus/world --username sqoop --password sqoop
+
+    information_schema
+    test
+    world
+
+
+    # Similarly, we can list the tables in the world database
+    $ sqoop list-tables --connect jdbc:mysql://limulus/world --username sqoop --password sqoop
+
+    City
+    Country
+    CountryLanguage
+
+
+    # To import data, we need to make a directory in HDFS
+    $ hdfs dfs -mkdir sqoop-mysql-import
+
+
+    # Import the Country table into HDFS
+    $ sqoop import --connect jdbc:mysql://limulus/world  --username sqoop --password sqoop 
+           --table Country  -m 1 --target-dir /user/hdfs/sqoop-mysql-import/country
+
+
+    # Confirm that the import succeeded
+    $ hdfs dfs -ls sqoop-mysql-import/country
+
+    sqoop-mysql-import/world/_SUCCESS
+    sqoop-mysql-import/world/part-m-00000
+
+
+    # View the countries file
+    $ hdfs dfs -cat sqoop-mysql-import/country/part-m-00000
+
+    ABW,Aruba,North America,Caribbean,193.0,null,103000,78.4,828.0,793.0,Aruba,
+        Nonmetropolitan Territory of The Netherlands,Beatrix,129,AW
+    ...
+    ZWE,Zimbabwe,Africa,Eastern Africa,390757.0,1980,11669000,37.8,5951.0,8670.0,
+        Zimbabwe,Republic,Robert G. Mugabe,4068,Z
+
+
+
+- Importing with an Options File
+
+    To make the Sqoop command more convenient, we can create an options file and use it
+      on the command line.
+
+    /* world-options.txt */
+    import
+    --connect
+    jdbc:mysql://limulus/world
+    --username
+    sqoop
+    --password
+    sqoop
+
+
+    # Perform an input with the options file
+    $ sqoop  --options-file world-options.txt --table City  -m 1 
+         --target-dir /user/hdfs/sqoop-mysql-import/city
+
+
+
+- Importing with an Included SQL Query
+
+    It is also possible to include a SQL query in the import step.
+
+    # Only import Canadian cities, the '-m 1' option means only a single mapper is used
+    $ sqoop  --options-file world-options.txt -m 1 
+         --target-dir /user/hdfs/sqoop-mysql-import/canada-city 
+         --query "SELECT ID,Name from City WHERE CountryCode='CAN' AND \$CONDITIONS"
+
+
+    # Inspecting the results confirms that only Canadian cities were imported
+    $  $ hdfs dfs -cat sqoop-mysql-import/canada-city/part-m-00000
+
+    1810,MontrÄal
+    1811,Calgary
+    1812,Toronto
+    ...
+    1856,Sudbury
+    1857,Kelowna
+    1858,Barrie
+
+
+
+- Importing with Multiple Mappers
+
+    Since there was only one mapper process, only one copy of the query needed to be run on the
+      database.  The results are also reported in a single file 'part-m-0000'.
+
+    Multiple mappers can be used to process the query if the --split-by-- option is used.  The
+      'split-by' option is used to parallelize the SQL query.  Each parallel task runs a subset
+      of the main query, with the results of each subquery being partitioned by bounding
+      conditions inferred by Sqoop.  
+
+    Your query must include the tokens $CONDITIONS that each Sqoop process will replace with a 
+      unique condition expression based on the --split-by option. Note that $CONDITIONS is not an
+      environment variable. Although Sqoop will try to create balanced sub-queries based on the 
+      range of your primary key, it may be necessary to split on another column if your primary 
+      key is not uniformly distributed.
+
+
+    # First, remove the results of the previous query
+    $ hdfs dfs -rm -r -skipTrash  sqoop-mysql-import/canada-city
+
+
+    # Run the query using 4 mappers, where we split by the ID number
+    $ sqoop  --options-file world-options.txt -m 4 
+         --target-dir /user/hdfs/sqoop-mysql-import/canada-city 
+         --query "SELECT ID,Name from City WHERE CountryCode='CAN' AND \$CONDITIONS" 
+         --split-by ID
+
+
+    # Now, we have 4 results files
+    $ hdfs dfs -ls  sqoop-mysql-import/canada-city
+
+    sqoop-mysql-import/canada-city/_SUCCESS
+    sqoop-mysql-import/canada-city/part-m-00000
+    sqoop-mysql-import/canada-city/part-m-00001
+    sqoop-mysql-import/canada-city/part-m-00002
+    sqoop-mysql-import/canada-city/part-m-00003
