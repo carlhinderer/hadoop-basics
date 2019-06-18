@@ -219,3 +219,70 @@ CHAPTER 7C - ESSENTIAL TOOLS - SQOOP
     sqoop-mysql-import/canada-city/part-m-00001
     sqoop-mysql-import/canada-city/part-m-00002
     sqoop-mysql-import/canada-city/part-m-00003
+
+
+
+- Exporting Data from HDFS to MySQL
+
+    Sqoop can also be used to export data from HDFS.  The first step to create tables for
+      exported data.  There are actually 2 tables needed for each exported table.  The first
+      table holds the exported data ('CityExport') and the second is used for staging the
+      exported data ('CityExportStaging').
+
+
+    # Create the export tables in mysql
+    mysql> CREATE TABLE 'CityExport' (
+       'ID' int(11) NOT NULL AUTO_INCREMENT,
+       'Name' char(35) NOT NULL DEFAULT '',
+       'CountryCode' char(3) NOT NULL DEFAULT '',
+       'District' char(20) NOT NULL DEFAULT '',
+       'Population' int(11) NOT NULL DEFAULT '0',
+       PRIMARY KEY ('ID'));
+
+    mysql> CREATE TABLE 'CityExportStaging' (
+       'ID' int(11) NOT NULL AUTO_INCREMENT,
+       'Name' char(35) NOT NULL DEFAULT '',
+       'CountryCode' char(3) NOT NULL DEFAULT '',
+       'District' char(20) NOT NULL DEFAULT '',
+       'Population' int(11) NOT NULL DEFAULT '0',
+       PRIMARY KEY ('ID'));
+
+
+    Next, create a 'cities-export-options.txt' file similar to the 'world-options.txt' 
+      created earlier, but use the 'export' command instead of the 'import' command.  Then,
+      we can perform the export.
+
+
+    # Create export options file
+
+    /* cities-export-options.txt */
+    export
+    --connect
+    jdbc:mysql://limulus/world
+    --username
+    sqoop
+    --password
+    sqoop
+
+
+    # Export the cities data back into mysql
+    $ sqoop --options-file cities-export-options.txt --table CityExport  
+         --staging-table CityExportStaging  --clear-staging-table -m 4 
+         --export-dir /user/hdfs/sqoop-mysql-import/city
+
+
+    # Check to make sure the export worked correctly
+    $ mysql> select * from CityExport limit 10;
+
+
+
+- Handy Cleanup Commands
+
+    # Remove a table in MySql
+    mysql> drop table 'CityExportStaging';
+
+    # Remove all data in a table
+    mysql> delete from CityExportStaging;
+
+    # Remove imported files
+    $ hdfs dfs -rm -r  -skipTrash sqoop-mysql-import/{country,city, canada-city}
