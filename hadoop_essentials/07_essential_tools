@@ -142,3 +142,95 @@ CHAPTER 7 - ESSENTIAL TOOLS
     [INFO]  96
     [TRACE] 816
     [WARN]  4
+
+
+
+- More Advanced Hive Example
+
+    - A more advanced usage case from the Hive documentation can be developed using the movie
+        rating data files obtained from the GroupLens Research webpage.  The files contain various
+        numbers of movie reviews, starting at 100,000 and going up to 20 million entries.
+
+      In this example, 100,000 records will be transformed from 'userid', 'movieid', 'rating',
+        'unixtime' to 'userid', 'movieid', 'rating', and 'weekday' using Apache Hive and a 
+        Python program.
+
+
+        # Download and extract the data
+        $ wget http://files.grouplens.org/datasets/movielens/ml-100k.zip
+        $ unzip ml-100k.zip
+        $ cd ml-100k
+
+
+        # weekday_mapper.py
+        import sys
+        import datetime
+
+        for line in sys.stdin:
+            line = line.strip()
+            userid, movieid, rating, unixtime = line.split('\t')
+            weekday = datetime.datetime.fromtimestamp(float(unixtime)).isoweekday()
+            print '\t'.join([userid, movieid, rating, str(weekday)])LOAD DATA LOCAL INPATH
+
+        './u.data' OVERWRITE INTO TABLE u_data;
+
+
+        # Next, we start hive and create the data table
+        hive> CREATE TABLE u_data (
+                userid INT,
+                movieid INT,
+                rating INT,
+                unixtime STRING)
+              ROW FORMAT DELIMITED
+              FIELDS TERMINATED BY '\t'
+              STORED AS TEXTFILE;
+
+
+        # Load the movie table
+        hive> LOAD DATA LOCAL INPATH './u.data' OVERWRITE INTO TABLE u_data;
+
+
+        # Get the number of rows in the table, this starts a single MapReduce job
+        hive> SELECT COUNT(*) FROM u_data;
+
+
+        # Now that the table data are loaded, make the new table
+        hive> CREATE TABLE u_data_new (
+                userid INT,
+                movieid INT,
+                rating INT,
+                weekday INT)
+              ROW FORMAT DELIMITED
+              FIELDS TERMINATED BY '\t';
+
+
+        # Add the weekday mapper to Hive resources
+        hive> add FILE weekday_mapper.py;
+
+
+        # Now we can perform the transform query
+        hive> INSERT OVERWRITE TABLE u_data_new
+                SELECT
+                  TRANSFORM (userid, movieid, rating, unixtime)
+                  USING 'python weekday_mapper.py'
+                  AS (userid, movieid, rating, weekday)
+                FROM u_data;
+
+
+        # Sort and group the reviews by weekday
+        hive> SELECT weekday, COUNT(*) 
+              FROM u_data_new 
+              GROUP BY weekday;
+
+        1        13278
+        2        14816
+        3        15426
+        4        13774
+        5        17964
+        6        12318
+        7        12424
+
+
+        # Remove the tables used in the example
+        $ hive -e 'drop table u_data_new'
+        $ hive -e 'drop table u_data'
