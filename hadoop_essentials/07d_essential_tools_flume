@@ -138,3 +138,38 @@ CHAPTER 7D - ESSENTIAL TOOLS - FLUME
 
       # The file should look the same in hdfs
       $ hdfs dfs -tail flume-channel/apache_access_combined/150427/FlumeData.1430164801381
+
+
+
+- Flume Configuration Files
+
+    # Sample web-server-source-agent.conf
+    source_agent.sources = apache_server
+    source_agent.sources.apache_server.type = exec
+    source_agent.sources.apache_server.command = tail -f /etc/httpd/
+    logs/access_log
+    ...
+    # Sink definition in same file
+    source_agent.sinks = avro_sink
+    source_agent.sinks.avro_sink.type = avro
+    source_agent.sinks.avro_sink.channel = memoryChannel
+    source_agent.sinks.avro_sink.hostname =  192.168.93.24
+    source_agent.sinks.avro_sink.port = 4545
+
+
+    # Sample web-server-target-agent.conf
+    collector.sinks.HadoopOut.type = hdfs
+    collector.sinks.HadoopOut.channel = mc2
+    collector.sinks.HadoopOut.hdfs.path = /user/hdfs/flume-channel/%{log_type}/%y%m%d
+    collector.sinks.HadoopOut.hdfs.fileType = DataStream
+    ...
+    # Defines port, channel to write to local file (mc1), channel to write to hdfs (mc2)
+    collector.sources.AvroIn.port = 4545
+    collector.sources.AvroIn.channels = mc1 mc2
+    collector.sinks.LocalOut.sink.directory = /var/log/flume-hdfs
+    collector.sinks.LocalOut.channel = mc1
+    ...
+    # Defines max file size
+    collector.sinks.HadoopOut.hdfs.rollSize = 0
+    collector.sinks.HadoopOut.hdfs.rollCount = 10000
+    collector.sinks.HadoopOut.hdfs.rollInterval = 600
