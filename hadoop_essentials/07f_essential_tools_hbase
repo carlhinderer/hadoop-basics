@@ -44,3 +44,128 @@ CHAPTER 7F - ESSENTIAL TOOLS - HBASE
     - Rows are lexicographically sorted with the lowest order appearing first in a table. The empty byte
         array denotes both the start and the end of a table’s namespace. All table accesses are via the 
         table row key, which is considered its primary key. 
+
+
+
+- Creating the HBase Database
+
+    # Enter the HBase Shell
+    $ hbase shell
+
+
+    # Get the system status
+    hbase> status
+    hbase> status 'simple'
+    hbase> statue 'summary'
+    hbase> status 'detailed'
+
+
+    # Other basic commands
+    hbase> version
+    hbase> whoami
+
+
+    For our example, we'll use Apple stock price data.  The data have the following form:
+
+      Date      Open      High       Low       Close      Volume
+      --------------------------------------------------------------
+      6-May-15  126.56    126.75     123.36    125.01     71820387
+
+
+    # Download the csv stock data
+    $ wget -O Apple-stock.csv \
+        http://www.google.com/finance/historical?q=NASDAQ:AAPL\&authuser=0\&output=csv
+
+
+    # Create the Database
+    hbase> create 'apple', 'price', 'volume'
+
+
+    In this case, the table name is 'apple', and 'price' and 'volume' are the columns.  The date
+      will be used as the row key.  The 'price' column is a family of 4 values ('open', 'close',
+      'low', 'high').
+
+
+
+- Adding Data
+
+    The 'put' command is used to add data to the database from within the shell.  For instance, we 
+      can use these commands to add data:
+
+      put 'apple','6-May-15','price:open','126.56'
+      put 'apple','6-May-15','price:high','126.75'
+      put 'apple','6-May-15','price:low','123.36'
+      put 'apple','6-May-15','price:close','125.01'
+      put 'apple','6-May-15','volume','71820387'
+
+
+
+- Accessing Data
+
+    # The entire database can be listed using the 'scan' command
+    hbase> scan 'apple'
+
+
+    # The row key can be used to access an individual row
+    hbase> get 'apple', '6-May-15'
+
+
+    # A single cell can be accessed using the 'get' command and the 'COLUMN' option
+    hbase> get 'apple', '5-May-15', {COLUMN => 'price:low'}
+
+
+    # To access multiple columns
+    hbase> get 'apple', '5-May-15', {COLUMN => ['price:low', 'price:high']}
+
+
+
+- Deleting Data
+
+    # Delete a specific cell
+    hbase> delete 'apple', '6-May-15' , 'price:low'
+
+
+    # An entire row can be deleted with the 'deleteall' command
+    hbase> deleteall 'apple', '6-May-15'
+
+
+    # Disable and drop a table
+    hbase> disable 'apple'
+    hbase> drop 'apple'
+
+
+
+- Scripting Input
+
+    Commands to the HBase shell can be placed in bash scripts for automated processing.
+
+    /* input_to_hbase.sh */
+    echo "put 'apple','6-May-15','price:open','126.56'" | hbase shell
+
+    $ input_to_hbase.sh Apple-stock.csv
+
+
+
+- Adding Data in Bulk
+
+    # Here, we use the 'ImportTsv' utility to import tsv data into HBase
+    $ convert-to-tsv.sh Apple-stock.csv
+
+
+    # Next, copy the new file into HDFS
+    $ hdfs dfs -put Apple-stock.tsv /tmp
+
+
+    # Import the data
+    $ hbase org.apache.hadoop.hbase.mapreduce.ImportTsv \
+        -Dimporttsv.columns=HBASE_ROW_KEY,price:open,price:high,price:low,price:close,volume \
+        apple /tmp/Apple-stock.tsv
+
+
+
+- The HBase Web Interface
+
+    Like many Hadoop tools, HBase has a web interface.  To start the HBase console, we can navigate
+      from the Ambari Quick Links, or go directly to:
+
+      http://localhost:60010/master-status
