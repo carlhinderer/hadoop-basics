@@ -1,0 +1,56 @@
+------------------------------------------------------------
+CHAPTER 7D - ESSENTIAL TOOLS - FLUME
+------------------------------------------------------------
+
+- Apache Flume
+
+    - Apache Flume is an independent agent designed to collect, transport, and store data into HDFS.
+        Often, data transport involves a number of Flume agents that may traverse a series of machines
+        and locations.  Flume is often used for log files, social media-generated data, email messages,
+        and just about any continuous data source.
+
+
+    - A Flume agent has 3 components:
+
+                      ---------------------------------
+         Web          |                               |
+         Server --->  |  Source --> Channel --> Sink  |  --->  HDFS
+                      |                               |
+                      ---------------------------------
+                                        Flume Agent
+
+
+        - The 'Source' component receives data and sends it to the channel.  The input data can be
+            from a real-time source (ie a weblog) or another Flume agent.
+
+        - The 'Channel' is a data queue that forwards the source data to the sink destination.  It can
+            be thought of as a buffer that manages input (source) and output (sink) flow rates.
+
+        - The 'Sink' delivers data to a destination such as HDFS, a local file, or another Flume agent.
+
+
+    - A Flume agent must have all 3 of these components defined.  A Flume agent can have several 
+        sources, channels, and sinks.  Sources can write to multiple channels, but a sink can take data
+        only from a single channel.  Data written to a channel remain in the channel remain in the 
+        channel until a sink removes the data.  By default, data in a channel are kept in memory but 
+        may be optionally stored on disk to prevent data loss in the event of a network failure.
+
+
+
+- Flume Pipelines
+
+    - Flume agents may be placed in a pipeline, possibly to traverse several machines or domains.  The
+        configuration is normally used when data are collected on one machine and sent to another 
+        machine that has access to HDFS.
+
+      
+    - In a Flume pipeline, the sink from one agent is connected to the source of another. The data 
+        transfer format normally used by Flume, which is called 'Apache Avro', provides several useful
+        features. First, Avro is a data serialization/deserialization system that uses a compact binary
+        format. The schema is sent as part of the data exchange and is defined using JSON. Avro also uses
+        remote procedure calls (RPCs) to send data. That is, an Avro sink will contact an Avro source 
+        to send data.
+
+
+    - Another useful configuration for Flume is to consolidate several data sources before committing
+        them to HDFS.
