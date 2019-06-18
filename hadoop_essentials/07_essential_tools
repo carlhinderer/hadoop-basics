@@ -1,0 +1,89 @@
+------------------------------------------------------------
+CHAPTER 7 - ESSENTIAL TOOLS
+------------------------------------------------------------
+
+- Apache Pig
+
+    - Pig is a high-level language that enables programmers to write complex MapReduce
+        transformations using a simple scripting language.  Pig Latin (the actual language) defines
+        a set of transformations on the data such as 'aggregate', 'join', and 'sort'.  Pig is
+        often used for ETL in data pipelines, quick research on raw data, and iterative data
+        processing.
+
+
+    - Pig has several usage modes:
+
+        1. Local Mode (with MapReduce)
+        2. Local Mode (with Tez)
+        3. Interactive Mode
+        4. Batch Mode
+
+      This allows Pig applications to be developed locally in interactive modes, using small amounts
+        of data, and then run at scale on the cluster in a production mode.
+
+
+
+- Pig Walkthrough
+
+    - In this simple example, we'll use Pig to extract user names from the '/etc/passwd' file.  The
+        following assumes the user is 'hdfs', but we could use another user name.
+
+
+      # Copy the 'passwd' file to a working directory for local Pig operation
+      $ cp /etc/passwd .
+
+
+      # Copy the file into HDFS
+      $ hdfs dfs -put passwd passwd
+      $ hdfs dfs -ls passwd
+
+
+      # In this example, all processing is done on the local machine (Hadoop is not used)
+      $ pig -x local
+
+
+      # If Pig starts correctly, you'll see a grunt> prompt
+      grunt> A = load 'passwd' using PigStorage(':');
+      grunt> B = foreach A generate $0 as id;
+      grunt> dump B;
+
+
+      # The processing will start and a list of user names will be printed to the screen
+      # To exit the interactive session, use the 'quit' command
+      grunt> quit
+
+
+
+- Other Pig Options
+
+    - Here, we'll start pig in other modes.
+
+        # Either of these will start Hadoop MapReduce Pig
+        $ pig
+        $ pig -x mapreduce
+
+
+        # If you have tez installed, it can be used as an engine
+        $ pig -x tez
+
+
+    - Pig can also be run from a script.
+
+        /* id.pig */
+        A = load 'passwd' using PigStorage(':');   -- load the passwd fild
+        B = foreach A generate $0 as id;           -- extract the user ids
+        dump B;
+        store B into 'id.out';                     -- write results to directory id.out
+
+
+        # Run the script
+        $ /bin/rm -r id.out/
+        $ pig -x local id.pig
+
+        # If the script worked correctly, you should see a data file with results and a 
+        #   zero-length file with the name _SUCCESS
+
+
+        # Run the script with the MapReduce version
+        $ hdfs dfs -rm -r id.out
+        $ pig id.pig
