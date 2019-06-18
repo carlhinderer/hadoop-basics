@@ -155,3 +155,62 @@ CHAPTER 7E - ESSENTIAL TOOLS - OOZIE
     # Get status of a particular job
     $ oozie job -info 0000001-150424174853048-oozie-oozi-W
 
+
+
+- Running the Oozie Demo Application
+
+    The 'oozie-examples/apps/demo' directory contains a more sophisticated example.  This workflow
+      contains MapReduce, Pig, and file system tasks, as well as fork, join, decision, action,
+      start, stop, kill, and end nodes.
+
+    # Move to the demo directory and run the workflow
+    $ cd oozie-examples/apps/demo
+    $ oozie job -run -config job/properties
+
+
+    We can track the job using either the Oozie command line interface or the Oozie web console.
+
+    To start the web console from within Ambari, click on the Oozie service, then click on the Quick
+      Links pull-down, and select 'Oozie Web UI'.
+
+    Alternatively, we can start the Oozie web UI by connecting to the Oozie server directly:
+      http://localhost:11000/oozie/
+
+
+
+- List of Oozie Job Commands
+
+    # Run a workflow job
+    $ oozie job -run -config JOB_PROPERTIES
+
+
+    # Submit a workflow job
+    $ oozie job -submit -config JOB_PROPERTIES
+
+
+    # Start a submitted job
+    $ oozie job -start _OOZIE_JOB_ID_
+
+
+    # Check a job's status
+    $ oozie job -info _OOZIE_JOB_ID_
+
+
+    # Suspend a workflow
+    $ oozie job -suspend _OOZIE_JOB_ID_
+
+
+    # Resume a workflow
+    $ oozie job -resume _OOZIE_JOB_ID_
+
+
+    # Rerun a workflow
+    $ oozie job -rerun _OOZIE_JOB_ID_ -config JOB_PROPERTIES
+
+
+    # Kill a job
+    $ oozie job -kill _OOZIE_JOB_ID_
+
+
+    # View server logs
+    $ oozie job  -logs _OOZIE_JOB_ID_
