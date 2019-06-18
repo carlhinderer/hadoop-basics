@@ -87,3 +87,58 @@ CHAPTER 7 - ESSENTIAL TOOLS
         # Run the script with the MapReduce version
         $ hdfs dfs -rm -r id.out
         $ pig id.pig
+
+
+
+- Apache Hive
+
+    - Hive is a data warehouse infrastructure built on top of Hadoop for providing data
+        summarization, ad hoc queries, and the analysis of large data sets using the SQL-like
+        language HiveQL.  Hive is considered the de facto standard for interactive SQL queries over
+        petabytes of data using Hadoop.  It has the following features:
+
+        - Tools to enable easy ETL
+        - A mechanism to impose structure on a variety of data formats
+        - Access to files stored either directly in HDFS or in other data storage systems like HBase
+        - Query optimization via MapReduce and Tez (optimized MapReduce)
+
+
+    - Hive provides users who are already familiar with SQL the capability to query the data on 
+        Hadoop clusters.  At the same time, Hive makes it possible for programmers who are familiar
+        with the MapReduce framework to add their own custom mappers and reducers to Hive queries.
+
+
+    - Hive queries can be dramatically accelerated using the Apache Tez framework.
+
+
+
+- Simple Hive Example
+
+    # To start hive, just use the 'hive' command
+    $ hive
+
+
+    # As a simple test, create and drop a table
+    hive> CREATE TABLE pokes (foo INT, bar STRING);
+    hive> SHOW TABLES;
+    hive> DROP TABLE pokes;
+
+
+    # Create a table to summarize web server logs
+    hive> CREATE TABLE logs (t1 string, t2, string, t3 string, t4 string, t5 string, t6 string, 
+              t7 string) ROW FORMAT DELIMITED FIELDS TERMINATED BY ' ';
+
+
+    # Load the 'sample.log' file from the book examples (stored in local directory, not hdfs)
+    hive> LOAD DATA LOCAL INPATH 'sample.log' OVERWRITE INTO TABLE logs;
+
+
+    # Apply the select step to the file (note this invokes a MapReduce operation)
+    hive> SELECT t4 AS sev, COUNT(*) AS cnt FROM logs WHERE t4 LIKE '[%' GROUP BY t4;
+
+    [DEBUG] 434
+    [ERROR] 3
+    [FATAL] 1
+    [INFO]  96
+    [TRACE] 816
+    [WARN]  4
