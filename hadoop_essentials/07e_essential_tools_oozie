@@ -1,0 +1,78 @@
+------------------------------------------------------------
+CHAPTER 7E - ESSENTIAL TOOLS - OOZIE
+------------------------------------------------------------
+
+- Apache Oozie
+
+    - Oozie is a workflow director system designed to run and manage multiple related Hadoop jobs.
+        For instance, complete data input and analysis may require several discrete Hadoop jobs
+        to be run as a workflow in which the output of one job serves as the input for a 
+        successive job.  Oozie is designed to construct and manage these workflows.
+
+
+    - Oozie workflow jobs are represented as DAGs of actions.  3 types of Oozie jobs are permitted:
+
+        1. Workflow = a specified sequence of Hadoop jobs with outcome-based decision points and 
+             control dependency.  Progress from one action to another cannot happen until the first
+             action is complete.
+
+        2. Coordinator = a scheduler workflow job that can run at various time intervals or when
+             data become available
+
+        3. Bundle = a higher-level Oozie abstraction that will batch a set of coordinator jobs
+
+
+    - Oozie is integrated with the rest of the Hadoop stack, supporting several types of Hadoop jobs
+        out of the box (ie MapReduce, Streaming MapReduce, Pig, Hive, Sqoop) as well as system-specific
+        jobs (ie Java programs and shell scripts).  Oozie also provides a CLI and a web UI for
+        managing jobs.
+
+
+
+- Oozie Workflow Definitions
+
+    - Oozie workflow definitions are written in hPDL (an XML Process Definition Language).  Such
+        workflows contain several types of nodes:
+
+        1. Control Flow Nodes
+             - Define the beginning and end of a worflow
+             - They include start, end, and optional fail nodes
+
+        2. Action Nodes
+             - Where the actual processing tasks are defined
+             - When an action node finishes, the remote systems notify Oozie and next node is executed
+             - Action nodes can also include HDFS commands
+
+        3. Fork/join Nodes
+             - Enable parallel execution of tasks in the workflow
+             - The fork node enables 2 or more tasks to run at the same time
+             - A join node represents a rendezvous point that must wait until all forked tasks complete
+
+        4. Decision Control Nodes
+             - Enable decisions to be made about the previous task
+             - Control decisions are based on the results of the previous action (eg file existence)
+             - Decision nodes are essentially switch-case statements that use JSP EL
+                 (Java Server Pages - Expression Language) that evaluate to either true or false
+
+
+
+- Oozie Workflow DAG Example
+
+
+                                             MapReduce
+                                           / streaming \                   
+             Start --> MapReduce --> fork                join --> decision 
+                                           \           /           |    |  
+                                                pig              map    |
+                                                               reduce   |
+                                                                pipes   |
+                                                                   |    |
+                                                                   |    |
+                                                                   v    v
+                                                                    java
+                                                                      |
+                                                                      v
+                                                                 file system
+                                                                      |
+                                                                      v
+                                                                     end
