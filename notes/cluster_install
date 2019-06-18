@@ -268,3 +268,11 @@
               Make datanodes Spark Thrift Server
               Make datanodes Livy For Spark2 Server
               Make datanodes Spark2 Thrift Server
+
+
+5. Extras
+
+     - Install gcc
+
+         sudo yum install gcc
+         sudo yum install gcc-c++

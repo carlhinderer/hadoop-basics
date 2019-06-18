@@ -72,7 +72,7 @@ CHAPTER 6 - MAPREDUCE PROGRAMMING
 
     3. The jar file can be created using the following command:
 
-         $ jar -cvf wordcount.jar -C wordcount_classes/
+         $ jar -cvf wordcount.jar -C wordcount_classes/ .
 
 
     4. To run the example, create an input directory in HDFS and place a text file in the new
@@ -99,7 +99,7 @@ CHAPTER 6 - MAPREDUCE PROGRAMMING
 
     7. The complete list of word counts can be copied from HDFS to the working directory:
 
-         $ hdfs dfs -get war-and-peace-output/part-r-00000.
+         $ hdfs dfs -get war-and-peace-output/part-r-00000
 
 
     8. If the WordCount program is run again using the same outputs, it will fail when it tries
@@ -138,7 +138,7 @@ CHAPTER 6 - MAPREDUCE PROGRAMMING
 
     - Piping the results of the map into the 'sort' command can create a simulated shuffle phase:
 
-        $ echo "foo foo quux labs foo bar quux" | ./mapper.py|sort -k1,1
+        $ echo "foo foo quux labs foo bar quux" | ./mapper.py | sort -k1,1
 
         Bar     1
         Foo     1
@@ -152,7 +152,7 @@ CHAPTER 6 - MAPREDUCE PROGRAMMING
     - Finally, the full MapReduce process can be simulated by adding the 'reducer.py' script to the
         following command pipeline:
 
-        $ echo "foo foo quux labs foo bar quux" | ./mapper.py|sort -k1,1|./reducer.py
+        $ echo "foo foo quux labs foo bar quux" | ./mapper.py | sort -k1,1 | ./reducer.py
 
         Bar     1
         Foo     3
