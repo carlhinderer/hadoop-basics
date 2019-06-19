@@ -36,11 +36,76 @@ CHAPTER 8 - YARN APPLICATIONS
          -shell_command uptime
 
 
-    Now we want to examine the output for the application.  Distributed-Shell redirects the output of
-      the individual shell commands run on the cluster nodes into the log files.  Assuming log 
-      aggregation is enabled, the results for each instance of the command can be found by using
-      the 'yarn logs' command.
+
+- Examining the Distributed-Shell Output
+
+    - Now we want to examine the output for the application.  Distributed-Shell redirects the output of
+        the individual shell commands run on the cluster nodes into the log files.  Assuming log 
+        aggregation is enabled, the results for each instance of the command can be found by using
+        the 'yarn logs' command.
 
 
     # Examine results from uptime command
     $ yarn logs -applicationId application_1432831236474_0001
+
+
+    /* Abbreviated Output */
+
+    Container: container_1432831236474_0001_01_000001 on n0_45454
+    ===============================================================
+    LogType:AppMaster.stderr
+    Log Upload Time:Thu May 28 12:41:58 -0400 2015
+    LogLength:3595
+
+    Log Contents:
+    15/05/28 12:41:52 INFO distributedshell.ApplicationMaster: Initializing
+    ApplicationMaster
+    [...]
+
+    Container: container_1432831236474_0001_01_000002 on n1_45454    
+    ===============================================================
+    LogType:stderr
+    Log Upload Time:Thu May 28 12:41:59 -0400 2015
+    LogLength:0
+    Log Contents:
+    LogType:stdout
+    Log Upload Time:Thu May 28 12:41:59 -0400 2015
+    LogLength:71
+
+    Log Contents:
+     12:41:56 up 33 days, 19:28,  0 users,  load average: 0.08, 0.06, 0.01
+
+
+     - Notice that there are 2 containers.  The first container ('con..._000001') is the 
+         ApplicationMaster for the job.  The second container ('con..._000002') is the actual shell
+         script.  The output for the 'uptime' command is located at the second container's 'stdout'
+         after the 'Log Contents:' label.
+
+
+
+- Using More Containers
+
+    Distributed-Shell can run commands to be executed on any number of containers by way of the
+        '-num_containers' argument.  For example, to see on which nodes the 'Distributed-Shell'
+        command was run, the following command can be used:
+
+
+        # See which containers the command was run on
+        $ yarn org.apache.hadoop.yarn.applications.distributedshell.Client -jar $YARN_DS 
+            -shell_command hostname -num_containers 4
+
+
+    If we now examine the results for this job, there will be 5 containers in the log.  The four 
+      command containers (2 through 5) will print the name of the node on which the container was
+      run.
+
+
+
+- Distributed-Shell Examples with Shell Arguments
+
+    Arguments can be added to the shell command using the '-shell_args' option.  For example, to do a
+      'ls -l' in the directory from where the shell command was run:
+
+      # Run ls -l
+      $ yarn org.apache.hadoop.yarn.applications.distributedshell.Client -jar $YARN_DS  
+          -shell_command ls -shell_args -l
