@@ -109,3 +109,81 @@ CHAPTER 8 - YARN APPLICATIONS
       # Run ls -l
       $ yarn org.apache.hadoop.yarn.applications.distributedshell.Client -jar $YARN_DS  
           -shell_command ls -shell_args -l
+
+
+
+- Structure of YARN Applications
+
+    - The central YARN 'ResourceManager' runs as a scheduling daemon on a dedicated machine and acts
+        as a central authority for allocating resources to the various competing applications on the
+        cluster.  The ResourceManager has a central and global view of all cluster resources, and,
+        therefore, can ensure fairness, capacity, and locality are shared across all users.
+
+
+    - Depending on the application demand, scheduling priorities, and resource availability, the
+        ResourceManager dynamically allocates resource containers to applications to run on 
+        particular nodes.  A container is a logical bundle of resources (ie memory and cores) bound
+        to a particular cluster node.
+
+
+    - To enforce and track such assignments, the ResourceManager interacts with a special system 
+        daemon running on each node called the 'NodeManager'.  Communications between the 
+        ResourceManager and NodeManagers are heartbeat based for scalability.  NodeManagers are
+        responsible for local monitoring of resource availability, fault reporting, and 
+        container life-cycle management (ie starting and killing jobs).  The ResourceManager depends
+        on the NodeManagers for its 'global view' of the cluster.
+
+
+    - User applications are submitted to the ResourceManager via a public protocol and go through an
+        admission control phase during which security credentials are validated and various
+        operational and administrative checks are performed.  Those applications that are accepted
+        pass to the scheduler and are allowed to run.  
+
+
+    - Once the scheduler has enough resources to satisfy the request, the application is moved from an
+        'Accepted' state to a 'Running' state.  Aside from internal bookkeeping, this process involves
+        allocating a container for the single ApplicationMaster and spawning it on a node in the
+        cluster.  Often called 'Container 0', the ApplicationMaster does not have any additional
+        resources at this point, but rather must request additional resources from the ResourceManager.
+
+
+    - The ApplicationMaster is the “master” user job that manages all application life-cycle aspects,
+        including dynamically increasing and decreasing resource consumption (i.e., containers), managing
+        the flow of execution (e.g., in case of MapReduce jobs, running reducers against the output of
+        maps), handling faults and computation skew, and performing other local optimizations. The
+        ApplicationMaster is designed to run arbitrary user code that can be written in any programming
+        language, as all communication with the ResourceManager and NodeManager is encoded using 
+        extensible network protocols (i.e. Google Protocol Buffers).
+
+
+    - YARN makes few assumptions about the ApplicationMaster, although in practice it expects most jobs 
+        will use a higher-level programming framework. By delegating all these functions to 
+        ApplicationMasters, YARN’s architecture gains a great deal of scalability, programming model
+        flexibility, and improved user agility. For example, upgrading and testing a new MapReduce 
+        framework can be done independently of other running MapReduce frameworks.
+
+
+    - Typically, an ApplicationMaster will need to harness the processing power of multiple servers to
+        complete a job. To achieve this, the ApplicationMaster issues resource requests to the
+        ResourceManager. The form of these requests includes specification of locality preferences 
+        (ie to accommodate HDFS use) and properties of the containers. The ResourceManager will 
+        attempt to satisfy the resource requests coming from each application according to availability 
+        and scheduling policies.
+
+
+    - When a resource is scheduled on behalf of an ApplicationMaster, the ResourceManager generates a 
+        lease for the resource, which is acquired by a subsequent ApplicationMaster heartbeat. The
+        ApplicationMaster then works with the NodeManagers to start the resource. A token-based security
+        mechanism guarantees its authenticity when the ApplicationMaster presents the container lease to 
+        the NodeManager.
+
+
+    - In a typical situation, running containers will communicate with the ApplicationMaster through an 
+        application-specific protocol to report status and health information and to receive 
+        framework-specific commands. In this way, YARN provides a basic infrastructure for monitoring 
+        and life-cycle management of containers, while each framework manages application-specific 
+        semantics independently. 
+
+
+    - This design stands in sharp contrast to the original Hadoop version 1 design, in which scheduling 
+        was designed and integrated around managing only MapReduce tasks.
