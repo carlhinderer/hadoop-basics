@@ -187,3 +187,101 @@ CHAPTER 8 - YARN APPLICATIONS
 
     - This design stands in sharp contrast to the original Hadoop version 1 design, in which scheduling 
         was designed and integrated around managing only MapReduce tasks.
+
+
+
+- YARN Application Frameworks
+
+    One of the most exciting aspects of Hadoop v2 is the ability to run all types of applications on 
+      a Hadoop cluster.  YARN provides a resource management platform, which provides services such
+      as scheduling, fault monitoring, data locality, and more to MapReduce and other frameworks.
+
+    This is a brief survey of emerging open source YARN application frameworks that are being 
+      developed to run under YARN.  
+
+
+    - Distributed Shell
+
+        Distributed-Shell is an example application included with the Hadoop core components that
+          demonstrates how to write applications on top of YARN.  It provides a simple method
+          for running shell commands and scripts in containers in parallel on a Hadoop YARN cluster.
+
+
+    - Hadoop MapReduce
+
+        MapReduce was the first YARN framework and drove many of YARN's requirements.  It is 
+          integrated tightly with the rest of the Hadoop ecosystem projects, such as Pig, Hive, and
+          Oozie.
+
+
+    - Apache Tez
+
+        Many Hadoop jobs involve the execution of a complex DAG of tasks involving separate MapReduce
+          stages.  Tez generalizes this process and enables these tasks to be spread across stages so
+          that they can be run as a single, all-encompassing job.  Tez can be used as a MapReduce 
+          replacement for projects such as Hive and Pig, with no change needed to the Hive or Pig
+          applications.
+
+
+    - Apache Giraph
+
+        Giraph is an iterative graph processing system built for high scalability.  Facebook, Twitter,
+          and LinkedIn use it to create social graphs of users.  Giraph was originally written for 
+          Hadoop v1, but that approach proved inefficient.  The native Giraph implementation under
+          YARN provides the user with an iterative processing model that is not directly available with 
+          MapReduce.  
+
+
+    - Hoya: HBase on YARN
+
+        The Hoya project creates dynamic and elastic Apache HBase clusters on top of YARN.  A client
+          application creates the persistent container files, sets up the HBase cluster XML files,
+          and then asks YARN to create an ApplicationMaster.  YARN copies all the files listed in the
+          client's application-launch request from HDFS into the local file system of the chosen
+          server, and then executes the command to start the Hoya ApplicationMaster.  Hoya also asks
+          YARN for the number of containers matching the number of HBase region servers it needs.
+
+
+    - Apache Spark
+
+        Spark was initially developed for applications in which keeping data in memory improves
+          performance, such as iterative algorithms, which are common in machine learning and 
+          interactive data mining.  
+
+        Spark differs from classic MapReduce in 2 important ways:
+
+          1. Spark holds intermediate results in memory, rather than writing them to disk.
+
+          2. Spark supports more than just MapReduce functions.  It greatly expands the set of 
+               possible analyses that can be executed over HDFS data stores.  It also provides APIs
+               in Scala, Java, and Python.
+
+
+    - Apache Storm
+
+        Traditional MapReduce jobs are expected to eventually finish, but Apache Storm continuously
+          processes messages until it is stopped.  The framework is designed to process unbounded
+          streams of data in real time.  It can be used with any programming language.  
+
+        The basic Storm use cases include real-time analytics, online machine learning, continuous
+          computation, distributed RPC, ETL, and more.  Storm provides fast performance, is scalable,
+          is fault tolerant, and provides processing guarantees.  It works directly under YARN and
+          takes advantage of the common data and resource management substrate.
+
+
+    - Apache Flink
+
+        Apache Flink is a platform for efficient, distributed, general-purpose data processing. It 
+          features powerful programming abstractions in Java and Scala, a high-performance run time, 
+          and automatic program optimization. It also offers native support for iterations, incremental
+          iterations, and programs consisting of large DAGs of operations.
+
+        Flink is primarily a stream-processing framework that can look like a batch-processing 
+          environment. The immediate benefit from this approach is the ability to use the same 
+          algorithms for both streaming and batch modes (exactly as is done in Apache Spark). However, 
+          Flink can provide low-latency similar to that found in Apache Storm, but which is not 
+          available in Apache Spark.
+
+        In addition, Flink has its own memory management system, separate from Java’s garbage collector. 
+          By managing memory explicitly, Flink almost eliminates the memory spikes often seen on Spark
+          clusters.
