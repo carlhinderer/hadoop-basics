@@ -81,3 +81,35 @@ CHAPTER 9 - AMBARI
         - Settings — Provides the option to turn off the progress window.
 
         - Sign Out — Exits the interface.
+
+
+
+- Managing Hadoop Services
+
+    - During the course of normal Hadoop cluster operation, services may fail for any number of
+        reasons.  Ambari monitors all of the Hadoop services and reports any service interruption to
+        the dashboard.
+
+
+    - When the system was installed, an administrative email for the Nagios monitoring system was
+        required.  All service interruption notifications are sent to this email address.
+
+
+
+- Changing Hadoop Properties
+
+    - One of the challenges of managing a Hadoop cluster is managing changes to cluster-wide 
+        configuration properties.  In addition to modifying a large number of properties, making 
+        changes to a property often requires restarting daemons and dependent daemons across the entire
+        cluster.  Ambari provides an easy way to manage this process.
+
+
+    - As described previously, each service provides a 'Configs' tab that opens a form displaying all
+        the possible service properties.  Any service can be changed using this interface.  Once
+        the configuration has been changed, an orange 'Restart' button appears.  Once this button is
+        clicked, the new property will take effect and the required services will be restarted.
+
+
+    - Ambari also tracks all changes made to system properties.  Each previous configuration is saved,
+        and the blue 'V' button can be clicked to revert back to any previous configuration.  Each 
+        service has its own version record.
