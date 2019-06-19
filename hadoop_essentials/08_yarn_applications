@@ -1,0 +1,46 @@
+------------------------------------------------------------
+CHAPTER 8 - YARN APPLICATIONS
+------------------------------------------------------------
+
+- The YARN Distributed-Shell
+
+    - The YARN Project includes the 'Distributed-Shell' application, which is an example of
+        a Hadoop non-MapReduce application built on top of YARN.  Distributed-Shell is a simple
+        mechanism for running shell commands and scripts in containers on multiple nodes in a
+        Hadoop cluster.
+
+
+    - The Distributed-Shell is not meant to be a production administration tool, but rather a 
+        demonstration of the non-MapReduce capability that can be built on top of YARN.  There are 
+        multiple mature implementations of a distributed shell that administrators typically use to 
+        manage a cluster of machines.
+
+
+    - The Distributed-Shell can be used as a starting point for exploring and building YARN
+        applications.
+
+
+
+- Using the YARN Distributed-Shell
+
+    # Assume and assign the HDP installation path
+    $ export YARN_DS=/usr/hdp/current/hadoop-yarn-client/hadoop-yarn-applications-
+
+
+    # Get options supported by Distributed-Shell
+    $ yarn org.apache.hadoop.yarn.applications.distributedshell.Client -jar $YARN_DS -help
+
+
+    # Run the simple 'uptime' command
+    $ yarn org.apache.hadoop.yarn.applications.distributedshell.Client -jar $YARN_DS \
+         -shell_command uptime
+
+
+    Now we want to examine the output for the application.  Distributed-Shell redirects the output of
+      the individual shell commands run on the cluster nodes into the log files.  Assuming log 
+      aggregation is enabled, the results for each instance of the command can be found by using
+      the 'yarn logs' command.
+
+
+    # Examine results from uptime command
+    $ yarn logs -applicationId application_1432831236474_0001
