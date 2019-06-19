@@ -1,0 +1,83 @@
+------------------------------------------------------------
+CHAPTER 9 - AMBARI
+------------------------------------------------------------
+
+- Apache Ambari
+
+    - Managing a Hadoop installation by hand can be tedious and time-consuming.  In addition to keeping
+        configuration files synchronized across a cluster, starting, stopping, and restarting Hadoop
+        services and dependent services in the right order is not a simple task.  The Apache Ambari
+        tool is designed to help you easily manage these and other Hadoop administrative issues.
+
+
+    - In order to use Ambari as a management tool, the entire installation process must be done using
+        Ambari.  It is not possible to use Ambari for Hadoop clusters that have been installed by
+        other means.  
+
+
+
+- Quick Tour of Ambari
+
+    - Ambari is usually available on port 8080
+
+        http://localhost:8080
+
+
+    - 'Nagios' and 'Ganglia' are 2 of the standard cluster management services installed by Ambari.
+        'Nagios' provides cluster monitoring and 'Ganglia' provides cluster metrics.
+
+
+    - The 'Dashboard' view provides a number of high-level metrics for many of the installed services.
+        A glance at the dashboard should allow you to get a sense of how the cluster is performing.
+
+
+    - The 'Services' menu provides a detailed look at each service running on the cluster.  It also
+        provides a graphical method for configuring each service, rather than hand-editing the XML
+        files.  The XML files should not be edited by hand if Ambari is being used.
+
+
+    - If a service provides its own graphical interface (ie HDFS, YARN, Oozie), then that interface can
+        be opened in a separate browser tab by using the 'Quick Links' pull-down menu located in the 
+        top middle of the window.
+
+
+    - The 'Service Action' pull-down menu in the upper-left corner provides a method for starting and
+        stopping each service and/or its component daemons across the cluster.  Some services may have
+        a unique set of actions (ie rebalancing HDFS) that only apply to certain situations.  
+
+      Finally, each service has a 'Service Check' option to make sure the service is working properly.  
+        The service check is initally run as part of the installation process and can be valuable when
+        diagnosing problems.
+
+
+    - The 'Hosts View' provides information such as the hostname, IP address, number of cores, memory,
+        disk usage, current load average, and Hadoop components on each host.  New hosts can also be
+        added by using the 'Actions' pull-down menu.  
+
+
+    - The 'Admin View' has 3 options:
+
+        1. The 'Repositories' option displays a list of installed software and its versions.
+
+        2. The 'Service Accounts' option lists the service accounts added when the system was installed.
+             These accounts are used to run various services and tests for Ambari.
+
+        3. The 'Security' option sets the security on the cluster.
+
+
+    - The 'Views View' shows the Ambari Views, which is a framework offering a systematic way to plug
+        in user interface capabilities that provide for custom visualization, management, and
+        monitoring features in Ambari.  Views allow you to extend and customize Ambari to mee your 
+        specific needs.
+
+
+    - The 'Admin' pull-down menu provides the following options:
+
+        - About — Provides the current version of Ambari.
+
+        - Manage Ambari — Open the management screen where Users, Groups, Permissions, and Ambari Views 
+            can be created and configured.
+
+        - Settings — Provides the option to turn off the progress window.
+
+        - Sign Out — Exits the interface.
