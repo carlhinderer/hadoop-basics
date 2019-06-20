@@ -109,3 +109,81 @@ CHAPTER 10 - BASIC HADOOP ADMINISTRATION PROCEDURES
              (default = 3072MB).
 
         4. 'mapreduce.reduce.java.opts' provides a larger or smaller heap size for child reducers.
+
+
+
+- The NameNode User Interface
+
+    - Monitoring HDFS can be done in several ways.  One of the more convenient ways to get a quick view
+        of HDFS status is through the NameNode user interface.  This web-based tool provides essential
+        information about HDFS and offers the capability to browse the HDFS namespace and logs.
+
+    - The web-based UI can be started from within Ambari or from a web browser connected to the 
+        NameNode.  In Ambari, simply select the HDFS service window and click on the Quick Links 
+        pull-down.  To navigate to the UI directly, use
+
+          http://localhost:50070
+
+
+    - There are 5 tabs in the UI:
+
+        1. Overview
+        2. Datanodes
+        3. Snapshot
+        4. Startup Progress
+        5. Utilities
+
+
+
+- Adding Users to HDFS
+
+    # Add a user to the group for your operating system on the HDFS client system
+    $ useradd -G hdfs user1
+
+    # Create the username directory in hdfs
+    $ hdfs dfs -mkdir /user/user1
+
+    # Give that account ownership over its directory in HDFS
+    $ hdfs dfs -chown user1:hdfs /user/user1
+
+
+
+- Perform an FSCK on HDFS
+
+    To check the health of HDFS, you can issue the 'hdfs fsck <path>' file system check command.
+      This example checks the entire HDFS namespace:
+
+      # Check the entire hdfs
+      $ hdfs fsck /
+
+
+
+- Balancing HDFS
+
+    - Based on usage patterns and DataNode availability, the number of data blocks across the DataNodes 
+        may become unbalanced.  To avoid over-utilized DataNodes, the HDFS balancer tool rebalances
+        data blocks across the available DataNodes.  Data blocks are moved from over-utilized to 
+        under-utilized nodes to within a certain percent threshold.
+
+    - Rebalancing can be done when new DataNodes are added or when a DataNode is removed from service.
+        The HDFS superuser must run the balancer.
+
+        # Run the balancer
+        $ hdfs balancer
+
+
+    - By default, the balancer will continue to rebalance the nodes until the number of data blocks on 
+        all DataNodes are within 10% of each other.  To set a different percent threshold:
+
+        # Use a 5% threshold
+        $ hdfs balancer -threshold 5
+
+
+    - To ensure the balancer does not swamp the cluster networks, you can set a bandwidth limit before
+        running the balancer:
+
+        # Set the bandwidth limit in bytes per second
+        $ dfsadmin -setBalancerBandwidth <new_bandwidth>
+
+        # Now, run the balancer
+        $ hdfs balancer
