@@ -117,14 +117,14 @@ CHAPTER 1 - HADOOP FOR HIVE
         completed.
 
 
-    - Shuffle and Sort Example
+    - MapReduce Example
 
 
                       List of Names
                           DOC
 
                       /    |    \
-                     /     |     \
+                     /     |     \    MAP
                     /      |      \
 
               James      James       Wendy
@@ -146,6 +146,14 @@ CHAPTER 1 - HADOOP FOR HIVE
                          Peter, 1
                          Peter, 1
 
+                         REDUCE
+
+            James, 2     Joan, 1     Susan, 1
+            Mordecai, 1  Frank, 3    Fredrick, 1
+            John, 1      Arthur, 1   Peggy, 1
+            Wendy, 2     Wendy, 2
+            Bob, 1       Peter, 2
+
 
     - The Shuffle and Sort phase is responsible for sorting the data by keys and sending the data to
         the reducer tasks.  Each reducer will receive all the data from a single key.  
@@ -153,3 +161,100 @@ CHAPTER 1 - HADOOP FOR HIVE
 
     - Note that you must know your data!  If you have a data set where 50% of the values are for a 
         single key like 'Bob', then a single reducer may become overwhelmed.
+
+
+    - The final stage is the Reduce phase.  Reduce takes each key/value pair as input and produces a
+        count aggregation based on the key.  The reduce phase can be thought of as a GROUP BY clause.
+
+
+
+- Beyond MapReduce
+
+    - MR is an extraordinarily flexible parallel processing framework, but as scalable and flexible as
+        it is, it also has many limitations.  MR process data in batch.  It exceeds at taking large
+        data sets, processing them in parallel, and then aggregating the results.  MR does not work
+        well with ad hoc or real-time query patterns.
+
+
+    - For example, if you want to get all sales for a product from every store in the past decade, and
+        this query traverses 10 TB of data, and you are willing to wait 10 hours to get the results,
+        MR would be an excellent choice.  But if you want to get the top 2 items sold for 5 stores in
+        Missouri, and you need the data in less than 10 seconds, MR is not a good choice.
+
+
+    - In reality, most organizations center around an ad hoc or near real-time processing business
+        intelligence architecture of which MR does not belong.  We take for granted the speeds in which
+        RDBMS's process joins, GROUP BY, ORDER BY, and other computations and lose sight of the face
+        that the processing speeds are due to the upfront cost of constraining and conforming the
+        data to specific schema structures and rules.
+
+
+    - Hadoop is 'schema-on-read'.  Ingesting data into traditional RDBMS's involves ETL, which works
+        well when the source data is relational.  This doesn't work well with unstructured or semi-
+        structured data, however.  For instance, it is possible to transform log data into a 
+        relational model, but at the cost of slowing down the ingestion rate and the breaking of
+        the ingestion process when simple domain constructs change.  Where we lose structure we gain
+        flexibility.
+
+
+    - MR tasks are written in Java.  MR handles the runtime complexities as well as the management and
+        scheduling of jobs on the cluster.  MR requires a strong knowledge of Java and the MR APIs.
+        As Hadoop moves more mainstream, it has moved away from being a Java development tool and 
+        caters more strongly to areas of the business such as ETL and business analytics.
+
+
+
+- Modern Data Architecture
+
+    
+      --------------------------------------------------------------------
+      |  APPLICATIONS      Business      Custom            Packaged      |
+      |                    Analytics     Applications      Applications  |
+      --------------------------------------------------------------------
+                                          ^
+                                          |
+      --------------------------------------------------------------------------------
+      |                                                Batch  Interactive  Real-time |
+      |  DATA           Rdbms   Edw   Mpp     <---->              YARN               |
+      |  SYSTEM                                                   HDFS               |
+      --------------------------------------------------------------------------------
+                                          ^
+                                          |
+      -----------------------------------------------------------------------------------------------
+      |  SOURCES    Existing   Clickstream   Web &   Geolocation   Sensor &   Server   Unstructured |
+      |             Systems                  Social                Machine    Logs                  |
+      -----------------------------------------------------------------------------------------------
+
+
+
+    - At its essence, Hadoop is a platform or architecture driving modern analytics.  Industry refers
+        to this as the 'Modern Data Architecture'.
+
+
+    - The architecture incorporates additional sources into the data flow that were previously
+        untapped due to the restrictions of traditional RDBMS's.  We can now include sources such as
+        clickstream, web and social, sensor and machine, logs, and images.
+
+
+    - As we pull this data into Hadoop as streaming inputs or batch, we stage them in HDFS for direct
+        analysis or movement into other systems. This approach optimizes the RDBMs, EDW, and MPP 
+        resources by offloading resource intensive and time-consuming extract, transform, and load
+        operations onto the much more economical Hadoop platform. You essentially move from an ETL model 
+        to a ELT model. You extract and load everything into Hadoop but only transform the data 
+        appropriate to your given platform or analytical needs.
+
+
+    - YARN is the driving force behind this architecture.  When MR was the only computation engine, 
+       Hadoop put MR jobs in a queue and a job couldn't run until the others finished.  YARN 
+       introduces the idea of containers.  
+
+
+    - A Resource Manager schedules jobs and allocates application resources based on assigned policies.
+        These policies can include things like 'Marketing gets a maximum of 50% of the cluster memory'.
+        This is known as a 'Capacity Scheduler', which is the default Hadoop scheduler.  Another is 
+        the 'Fair Scheduler', which just does FIFO.
+
+
+    - Data Nodes run an ApplicationMaster whose purpose is to control each container on a per-application
+        basis.  The ApplicationMaster acts as the messenger for the ResourceManager's ApplicationManager
+        component, and controls resource allocation locally on each node.
