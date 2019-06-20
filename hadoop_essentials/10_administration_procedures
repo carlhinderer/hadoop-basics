@@ -1,0 +1,111 @@
+------------------------------------------------------------
+CHAPTER 10 - BASIC HADOOP ADMINISTRATION PROCEDURES
+------------------------------------------------------------
+
+- Basic Configuration Files
+
+    - 'core-default.xml' = system-wide properties
+
+    - 'hdfs-default.xml' = HDFS properties
+
+    - 'mapred-default.xml' = MapReduce properties
+
+    - 'yarn-default.xml' = YARN properties
+
+
+
+- Decomissioning YARN Nodes
+
+    - If a NodeManager host/node needs to be removed from the cluster, it should be decomissioned
+        first.  Assuming the node is responding, it can be decomissioned from the Ambari web UI.
+
+    - To decomission, go to Hosts view, click on host, and select 'Decomission' from the pull-down
+        menu.  If the node is also an HDFS DataNode, it needs to be decomissioned from HDFS in a 
+        similar fashion.
+
+
+
+- YARN WebProxy
+
+    - The Web Application Proxy is a separate proxy server in YARN that addresses security issues
+        with the cluster web interface on ApplicationMasters.  By default, the proxy runs as part of
+        the ResourceManager itself, but it can be configured to run in a stand-alone mode.
+
+
+
+- Using the JobHistory Server
+
+    - The removal of the JobTracker and migration of MapReduce from a system to an application-level
+        framework necessitated creation of a place to store MapReduce job history.  The JobHistoryServer
+        provides all YARN MapReduce applications with a central location in which to aggregate 
+        completed jobs for historical reference and debugging.
+
+    - The settings for the JobHistoryServer can be found in the 'mapred-site.xml' file.
+
+
+
+- Managing YARN Jobs
+
+    - YARN jobs can be managed using the 'yarn application' command.  Options including '-kill', '-list',
+        and '-status' are available to the administrator with this command.  MapReduce jobs can also be
+        controlled with the 'mapred job' command.
+
+    - Neither the YARN ResourceManager UI nor Ambari can be used to kill YARN applications.  If a job
+        needs to be killed, give the 'yarn application' command to find the Application Id and use the
+        '-kill' argument.
+
+
+
+- Setting Container Memory
+
+    - YARN manages application resource containers over the entire cluster.  Controlling the amount of 
+        container takes place in he yarn-site.xml file:
+
+        1. 'yarn.nodemanager.resource.memory-mb' is the amount of memory the NodeManager can use for
+             containers.
+
+        2. 'scheduler.minimum-allocation-mb' is the smallest container allowed by the ResourceManager. 
+             A requested container smaller than this value will result in an allocated container of this 
+             size (default 1024MB).
+
+        3. 'yarn.scheduler.maximum-allocation-mb' is the largest container allowed by the 
+             ResourceManager (default 8192MB).
+
+
+
+- Setting Container Cores
+
+    - You can set the number of cores for containers using the following properties in the 
+        'yarn-site.xml':
+
+        1. 'yarn.scheduler.minimum-allocation-vcores': The minimum allocation for every container 
+             request at the ResourceManager, in terms of virtual CPU cores. Requests smaller than this
+             allocation will not take effect, and the specified value will be allocated the minimum 
+             number of cores. The default is 1 core.
+
+        2. 'yarn.scheduler.maximum-allocation-vcores': The maximum allocation for every container request 
+             at the ResourceManager, in terms of virtual CPU cores. Requests larger than this allocation 
+             will not take effect, and the number of cores will be capped at this value. The default is 32.
+
+        3. 'yarn.nodemanager.resource.cpu-vcores': The number of CPU cores that can be allocated for
+             containers. The default is 8.
+
+
+
+- Setting MapReduce Properties
+
+    - As noted throughout this book, MapReduce now runs as a YARN application. Consequently, it may be
+        necessary to adjust some of the 'mapred-site.xml' properties as they relate to the map and 
+        reduce containers. The following properties are used to set some Java arguments and memory size 
+        for both the map and reduce containers:
+
+        1. 'mapred.child.java.opts' provides a larger or smaller heap size for child JVMs of maps 
+             (e.g., --Xmx2048m).
+
+        2. 'mapreduce.map.memory.mb' provides a larger or smaller resource limit for maps 
+             (default = 1536MB).
+
+        3. 'mapreduce.reduce.memory.mb' provides a larger heap size for child JVMs of maps 
+             (default = 3072MB).
+
+        4. 'mapreduce.reduce.java.opts' provides a larger or smaller heap size for child reducers.
