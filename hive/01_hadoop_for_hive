@@ -1,0 +1,85 @@
+------------------------------------------------------------
+CHAPTER 1 - HADOOP FOR HIVE
+------------------------------------------------------------
+
+- Hadoop Mechanics
+
+    - MR is a traditional batch-oriented processing framework.  New processing engines such as Tez
+        are geared more toward near real-time access.  With the advent of YARN, HDFS is now a 
+        multitenant environment allowing for many data access patterns, such as batch, real-time, and
+        interactive.
+
+
+    - HDFS is a virtual filesystem on top of the Linux filesystem.  It abstracts away the fact that
+        you're storing data on multiple nodes in a cluster.
+
+
+    - HDFS is a big step away from traditional virtualization approaches that relied on SANs.  HDFS
+        provides scalable storage and redundancy using commodity hardware.  
+
+
+
+- Traditional High Availability
+
+    - The traditional High Availability systems before Hadoop were very expensive in terms of hardware,
+        software, and maintenance costs.  The more uptime you needed, the more expensive the solution.
+        Most architectures involved a set of passive systems sitting in wait to be utilized if the
+        primary system fails.  Once the primary node fails, a secondary system takes over.  This 
+        approach increases costs without increasing available resources.
+
+
+    - Traditional clusters require shared storage architecture, usually served by a SAN infrastrucure.
+        SANs can store a tremendous amount of data, but are expensive to build and maintain.  SANs
+        are separate from servers, so all data must be transmitted across networks.  
+
+
+    - Most storage vendors use RAID to provide data protection.  While RAID provides data protection
+        and sometimes speeds up reads and writes, it requires redundant disks.  Most SANs use
+        RAID 10.  
+
+
+    - In essence, SANs are large containers holding multiple disk arrays and managed by a central 
+        console.  A company purchases a server, the server is provisioned in a data center with minimal
+        storage for the OS, and is connected to the SAN infrastructure via a network.  Applications
+        request data from the SAN, which is pulled through the network for processing on the server.
+
+
+
+- Hadoop High Availability
+
+    - Hadoop provides an alternative framework for high availability.  First, it assumes node failure
+        will occur, and builds mechanism to account for this in the software.  This means Hadoop is
+        highly available out of the box, but the extent can be configured.  Because it is open source,
+        it removes much of the cost of HA.
+
+
+    - Hadoop takes advantage of the fact that storage costs have dropped significanly.  It duplicates
+        data for the purpose of redundancy, by default 3 times the original size.
+
+
+    - The use of large block sizes influences much of Hadoop's architecture.  Large block sizes are core
+        to how Hadoop is deployed, managed, and provisioned.  This is due to the following considerations:
+
+        1. Large files are more efficiently processed than smaller files
+        2. There are fewer memory requirements on the master server
+        3. More efficient sequential reads and writes
+        4. The seek rate is reduced as a percentage of transfer time
+
+
+    - The NameNode:
+
+        1. Tracks which blocks in the cluster belong to which file
+        2. Maintains where in the cluster each block is located
+        3. Determines where to place blocks based on node location
+        4. Tracks overall health of the cluster through block reports
+
+
+    - Hadoop knows all the available DataNodes and on which rack the DataNodes are located.  This is
+        known as 'rack awareness'.  Hadoop will replicate data with these steps:
+
+        1. A block is written to [Rack 1, Node 1]
+        2. A copy of the block is written to [Rack 2, Node 2]
+        3. A copy of the block is written to [Rack 2, Node 3]
+
+      Even if there are more than 2 racks, the third write will still be to the same rack as the second
+        one.  This is because Hadoop tries to maximize availability while reducing network traffic.
