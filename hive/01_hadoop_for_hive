@@ -83,3 +83,73 @@ CHAPTER 1 - HADOOP FOR HIVE
 
       Even if there are more than 2 racks, the third write will still be to the same rack as the second
         one.  This is because Hadoop tries to maximize availability while reducing network traffic.
+
+
+
+- Processing with MapReduce
+
+    - If we begin a job process on the cluster, it would be unacceptable to have to restart the entire
+        job 5 hours into processing simply because a single node became unavailable.
+
+
+    - MapReduce is declining in importance, but it is still useful to understand how it works.  
+        Applications such as Hive and Pig can execute MapReduce behind the scenes (although its not
+        recommended), and it is helpful to understand what MapReduce is doing so that we can better
+        tune our queries and understand their behavior.
+
+
+    - The Map() function runs on each DataNode and processes all the blocks on that DataNode 
+        associated with the file.  It does this independently of all other blocks located on the
+        other DataNodes.  This provides an 'embarassingly parallel', 'shared nothing' environment.
+        The Map() function outputs a key/value pair.
+
+
+    - Once the Map() phase completes, we have an intermediary phase called Shuffle and Sort.  This 
+        phase takes all the key/value pairs from the Map phase and assigns them to a reducer.  Each
+        reducer receives all data associated with a single key.  The Shuffle and Sort phase is the 
+        only time data is physically moved within the cluster and communication occurs between
+        processes.
+
+
+    - As we dig deeper into Hive performance, we will want to focus on avoiding the reduce phase.
+        This phase can be a bottleneck because it requires moving data over the network as well as
+        communication between nodes.  Also, the reduce phase cannot run until all mapping has 
+        completed.
+
+
+    - Shuffle and Sort Example
+
+
+                      List of Names
+                          DOC
+
+                      /    |    \
+                     /     |     \
+                    /      |      \
+
+              James      James       Wendy
+              Joan       Peter       Mordecai
+              John       Peter       Frank
+              Frank      Arthur      Frank
+              Peggy      Wendy       Susan
+                         Bob         Fredrick
+
+                    SHUFFLE AND SORT
+
+            James, 1     Joan, 1     Susan, 1
+            James, 1     Frank, 1    Fredrick, 1
+            Mordecai, 1  Frank, 1    Peggy, 1
+            John, 1      Frank, 1
+            Wendy, 1     Arthur, 1
+            Wendy, 1     Wendy, 1
+            Bob, 1       Wendy, 1
+                         Peter, 1
+                         Peter, 1
+
+
+    - The Shuffle and Sort phase is responsible for sorting the data by keys and sending the data to
+        the reducer tasks.  Each reducer will receive all the data from a single key.  
+
+
+    - Note that you must know your data!  If you have a data set where 50% of the values are for a 
+        single key like 'Bob', then a single reducer may become overwhelmed.
