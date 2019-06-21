@@ -113,3 +113,95 @@ CHAPTER 4 - HIVE TABLES DDL
 
       The default behavior of the DROP DATABASE command is RESTRICT, which means if there are any
         tables in the database, the command will fail.
+
+
+
+- Listing Databases
+
+    - You can view the list of all databases in the metastore using:
+
+        SHOW DATABASES [LIKE 'identifier_with_wildcards'];
+
+      For example:
+
+        SHOW DATABASES LIKE 'S*';
+
+
+
+- Primitive Data Types
+
+    - Each column value in Hive has a data type, which has constraints and a valid range of values.  The
+        behavior of these data types is similar to the underlying data types in Java in which they are
+        implemented.  The primitive types are:
+
+        1. Numeric types = integers and floating points
+
+        2. Date/time types
+
+        3. Character data types
+
+        4. Booleans
+
+        5. Binary
+
+
+    - Since Hadoop often contains various types of data, it's often better to use a less restrictive
+        data type for a column.  For instance, a 'STRING' column provides much more flexibility than a
+        'VARCHAR(25)'.  
+
+
+
+- Complex Data Types
+
+    - Apart from the primitive types, Hive also contains a few types that are not usually found in 
+        relational databases.  These consist of collection types, and are internally implemented using
+        native serializers and deserializers.  The complex data types are:
+
+        1. Arrays
+
+        2. Maps
+
+        3. Structs
+
+        4. Unions
+
+
+    - A Hive array is an order collection of elements with a similar type.  
+
+        # Creates an array named ITEMS
+        ITEMS ARRAY<"Bread", 'Butter', "Organic Eggs">
+
+        # Access elements (0-index)
+        ITEMS[0]
+        ITEMS[2]
+
+
+    - A Hive map is an unordered collection of key/value pairs.  The key must be one of the primitive
+        types.  The value can be any Hive type, including a complex type.
+
+        # Create and populate a map
+        Basket MAP<'string', 'int'>
+        Basket MAP<"Eggs", '12'>
+
+        # Access elements
+        Basket("Eggs")       # Returns 12
+
+
+    - A Hive struct contains various fields that can be of any data type.
+
+        # Create a struct
+        address STRUCT<houseno:STRING, 
+                       street:STRING, 
+                       city:STRING, 
+                       zipcode:INT, 
+                       state:STRING, 
+                       country:STRING>
+
+        address <"17","MAIN ST", "SEATTLE", 98104, "WA","USA">
+
+
+    - A Hive union provides a way to store elements of different data types in different rows of the
+        same field.  This is useful when the underlying data of a field is not homogenous.
+
+        # Customer's contact details may consist of 1 or more phone numbers and 1 or more emails
+        contact UNIONTYPE <int, array<int>, string, array<string>>
