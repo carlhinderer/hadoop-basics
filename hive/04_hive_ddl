@@ -53,3 +53,63 @@ CHAPTER 4 - HIVE TABLES DDL
 
 
 
+- Creating Databases
+
+    - You can create a database in Hive using the CREATE DATABASE command.  
+
+        # Create the shopping database
+        hive> CREATE DATABASE shopping;
+
+      This creates a new namespace called 'Shopping' in the Hive metastore.  In this example, since we
+        have not specified a location for this database on HDFS, it will create a directory called 
+        'Shopping.db' under the default top-level directory defined in 'hive.metastore.warehouse.dir'.
+
+
+    - The complete syntax of the CREATE DATABASE command is:
+
+        CREATE (DATABASE | SCHEMA) [ IF NOT EXISTS ] database_name
+        [ COMMENT database_comment ]
+        [ LOCATION hdfs_path ]
+        [ WITH DBPROPERTIES (property_name = property_value,...) ] ;
+
+      Here is an example:
+
+        CREATE DATABASE  IF NOT EXISTS  shopping
+        COMMENT 'stores all shopping basket data'
+        LOCATION '/user/retail/hive/SHOPPING.db'
+        WITH DBPROPERTIES ('purpose' = 'testing') ;
+
+
+    - The WITH DBPROPERTIES clause let's you assign any custom properties to a database.  These properties
+        can be viewed with the DESCRIBE DATABASE EXTENDED command.  
+
+
+
+- Altering Databases
+
+    - Once you have created a database, you can modify its metadata properties (DBPROPERTIES) or OWNER
+        using the ALTER DATABASE command.
+
+        # Change DBPROPERTIES
+        ALTER DATABASE shopping
+        SET DBPROPERTIES ('department' = 'SALES');
+
+
+
+- Dropping Databases
+
+    - A Hive database can be dropped using the DROP DATABASE command.
+
+        DROP DATABASE database_name [RESTRICT | CASCADE];
+
+      For example:
+
+        DROP DATABASE shopping CASCADE;
+
+
+    - The CASCADE in this command is optional and allows you to drop a database with existing tables.
+        The above command will drop all internal and external tables that belong to the shopping
+        database.
+
+      The default behavior of the DROP DATABASE command is RESTRICT, which means if there are any
+        tables in the database, the command will fail.
