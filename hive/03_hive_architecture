@@ -164,3 +164,57 @@ CHAPTER 3 - HIVE ARCHITECTURE
         2. Database Explorer = specify which database we want to use for query execution and list tables
 
         3. Query Editor = create and execute Hive queries, profile queries, review logs and error messages
+
+
+
+- The Tez Execution Engine
+
+    - When Hadoop was conceived, there was only one execution engine from processing data.  That engine
+        was MR and it was a batch operation.  It meant that MR had a unique ability to crunch massive
+        amounts of data but processing that data was a monumental task which took most of your cluster
+        resources and did not finish quickly.
+
+
+    - At that time, since MR was Java, users needed to know how to write Java applications to use it.
+        Facebook created Hive as a SQL abstraction layer for writing MR Java code.  This was a huge step
+        for access to Hadoop, but did nothing for the inherent problem of MR being a batch operation.
+        Users wrote SQL queries on Hadoop, but did not experience anything near the performance of
+        traditional RDBMS's.  
+
+
+    - Some early Hadoop distributors solved this problem by creating data access architectures, which
+        accessed data within Hadoop, but processed data outside of Hadoop.  The goal of these operations
+        was to execute as much as possible in-memory and avoid costly disk operations.  The two
+        early adopters of this approach were Apache Impala and Apache Hawq.  
+
+
+    - The problem with the in-memory approach is that they were performant only until data sets became
+        too large to fit in memory.  This is because once memory capacity is full, the data needs to
+        spill to disk and you begin hitting IO bottlenecks.  The other problem is that they were not
+        Hive or open source.  They were proprietary and expensive.
+
+
+    - Early Hadoop adopters had been using Hive for years, and preferred to make Hive better instead
+        of focusing on proprietary tools.  They started the 'Stinger Initiative' to provide interactive
+        SQL-in-Hadoop natively in Hive.  In order to accomplish this, a new engine was required.  This
+        new engine was named 'Tez', which is the Urdu word for swift.
+
+
+    - Tez is the new paradigm for Hive execution.  MapReduce is still supported for Hive execution, but
+        Tez is now the default engine for running Hive jobs in Hadoop.  Tez provides a number of
+        advantages over traditional Hadoop, including:
+
+        1. Tez avoids disk IO by avoiding expensive shuffles and shorts while leveraging more efficient
+             map side joins.
+
+        2. Tez utilizes a cost-based optimizer, which helps produce faster execution plans.
+
+      
+    - These optimizations, along with the ORC file format (which is geared towards SQL performance),
+        provide a query engine which is 100x faster than native MapReduce.  
+
+
+    - Keep in mind that the current Hive implementation is not an in-memory only process like other data
+        access tools.  This is by design, since that would limit the size of the data sets to only what 
+        will fit in memory.  Hive has been proven to scale to petabyte-range.  If we want to use
+        in-memory processing, Hive can also run on Spark.
