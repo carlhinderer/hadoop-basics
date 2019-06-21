@@ -9,6 +9,14 @@ CHAPTER 2 - HIVE
         abstraction layer on top of MR.
 
 
+    - Hive was created by Facebook to abstract MR from business analysts and make Hadoop accessible to
+        those familiar with SQL and who are most responsible for viewing the data and extracting
+        valuable analytical insights.
+
+
+    - Hive is now the de facto standard and most widely used SQL-on-Hadoop tool.
+
+
 
 - Cluster Architecture
 
@@ -56,4 +64,89 @@ CHAPTER 2 - HIVE
 
 
     - Another way to took at edge nodes are as management servers that contain non-distributed components.
-        
+        For instance, Ambari runs as a single instance and is not distributed across multiple nodes.
+
+
+
+- Hive Installation
+
+    - Hive is only one component of a larger Hadoop ecosystem.  Clusters will most likely include 
+        applications like Solr (used for text searching) and HBase (used for transaction-like processing).
+
+
+    - This book uses the HDP version of Hive, because it is the standard open-source version.  Cloudera
+        also provides Hive, but they focus on their Impala as their primary SQL-on-Hadoop solution.
+        MapR favors the use of Apache Drill.
+
+
+    - Hive is a client application using HDFS for its backend storage.  Included in Hive are other 
+        server and functional components such as 'HiveServer2' and 'HCatalog'.  At installation time,
+        we designate nodes for the Hive client and HiveServer and HCatalog.  
+
+
+    - When we navigate to Ambari, and go to the Hive tab, we should see 5 services running:
+
+        1. Hive Metastore
+        2. HiveServer2
+        3. MySQL Server
+        4. WebHCat Server
+        5. Hive Client
+
+      All of these services are necessary for Hive to operate.
+
+
+
+- Navigating Hive Tools
+
+    - Ambari views provide an easy means for executing Hive queries through a GUI.  The Hive view
+        has a database explorer, query editor, and various configuration and management options.
+        The Hive view is designed for an end user and not an admin.  It is typically used by a business
+        analyst or SQL developer.
+
+
+    - Hive SQL is called HiveQL.  It is case-insensitive and requires statements to be 
+        semicolon-terminated.
+
+
+    - As you create tables and databases in Hive, they will appear in HCatalog.  HCatalog provides a 
+        means for other applications besides Hive to access these tables, preventing you from having
+        to recreate a table on a per-application basis.  A HCat table, as well as any Hive table you 
+        create, can be accessed through an ODBC or JDBC connection as well as through specific HCat
+        loaders.  
+
+
+    - Hive out-of-the-box will not be as performant as an RDBMS.  It is equivalent to running a query
+        with no indexes.  There are a number of performance best practices we will become familiar
+        with.  Remember too that Hive is an analytic tool and will not replace your existing OLTP
+        processes.  As scalable as Hive is, it does not mean you can start using Hive as an 
+        e-commerce cart application.
+
+
+
+- Hive CLI
+
+    - Besides the GUI option, Hive provides a command-line interface for managing and running scripts,
+        DDL commands, and DML commands.  The command line provides flexibility and low overhead for
+        interacting with Hive.  
+
+
+        # Start Hive CLI
+        $ hive
+
+
+        # Show all tables
+        hive> show tables;
+
+
+        # Run a query
+        hive> SELECT * FROM sample_07 LIMIT 10;
+
+
+        # View metadata about objects
+        hive> DESCRIBE sample_07;
+        hive> DESCRIBE EXTENDED sample_07;
+        hive> DESCRIBE FORMATTED sample_07;
+
+
+        # Exit the hive prompt
+        hive> exit;
