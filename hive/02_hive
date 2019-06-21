@@ -1,0 +1,59 @@
+------------------------------------------------------------
+CHAPTER 2 - HIVE
+------------------------------------------------------------
+
+- Hive Beginnings
+
+    - The original idea of Hive was for people who don't know Java, but do know SQL, to be able to use
+        the parallel processing features of MR.  The first implementation of Hive was just as an
+        abstraction layer on top of MR.
+
+
+
+- Cluster Architecture
+
+    - Generally, admins divide cluster servers into 3 categories: master, edge, and worker.  A master
+        server contains any component critical to the cluster where high availability is a requirement.
+        A worker server contains any cluster service that is easily replaced or can incur downtime
+        without fear of data loss.
+
+
+    - These are examples of services you will want to provision on master nodes in a typical cluster:
+
+        - NameNode and SecondaryNameNode
+        - JobTracker
+        - ResourceManager
+        - HBase Master
+        - HiveServer2
+        - Oozie Server
+        - Zookeeper
+        - Storm Server
+        - WebHCat Server
+
+
+    - Hadoop vendors tend to segregate clusters into 3 sizes: small, medium, and large.  
+
+        - Small = <32 nodes (fits on a single rack typically)
+        - Medium = 32-150 nodes
+        - Large = >150 nodes
+
+
+    - As much as Hadoop touts its resiliency, master servers are still single points of failure and 
+        need to be accounted for appropriately.
+
+
+    - The Hive client is installed on all worker nodes.  When interacting with Hive, you will most likely
+        access it through a web portal such as Ambari or Hue.  These servers tend to be installed on
+        edge nodes.  Edge nodes have fewer resources with no master server components.  However, they may
+        contain metadata repositories that should be backed up like any other relational database system.
+
+      Edge nodes can be though of as management servers or even web servers.  An edge node may contain
+        operational software, such as Ambari, MCS, or Cloudera Manager as well as client components 
+        such as Pig or Hive.  They may also be used for firewall purposes such as is the case for 
+        Apache Knox.  The point is that edge nodes tend to be smaller servers whose main purpose is
+        to act as a client gateway into the larger Hadoop infrastructure.  They still may need 
+        substantial storage to account for the application logging they do.
+
+
+    - Another way to took at edge nodes are as management servers that contain non-distributed components.
+        
