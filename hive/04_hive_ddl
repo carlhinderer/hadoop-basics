@@ -1,0 +1,55 @@
+------------------------------------------------------------
+CHAPTER 4 - HIVE TABLES DDL
+------------------------------------------------------------
+
+- Schema-On-Read
+
+    - The versatility and power of Hadoop lies in its ability to store and process any kind of 
+        unstructured, semi-structured, or structured data.  Hive allows users to create a metadata layer
+        on top of this data and access it using a SQL interface.
+
+
+    - Since the underlying data in HDFS can be of any format, Hive lets you provide additional 
+        information in the metadata to explain exactly the nature in which the data stored is formatted.
+        Most of the Hive CREATE statements provide additional information such as how the underlying
+        data is structured, how the records are defined, and how fields are separated.
+
+
+
+- Hive Data Model
+
+    - Hive's data model is quite similar to various relational databases.  It consists of a schema of
+        tables, columns, rows, and partitions.  These objects are logical units that are defined in the
+        metadata layer called the Hive Metastore.  In addition to the common data segments, Hive 
+        introduces an additional structure called 'buckets'.
+
+
+    - The Hive Metastore consists of namespaces, object definitions, and the details of the underlying
+        data.  As of today, a Hive Metastore is created in an RDBMS, as it is quite critical to have
+        fast access to this information.  
+
+
+
+- Schemas
+
+    - A Hive schema (or database) is essentially a namespace that holds metadata information for a set
+        of tables.  'Schema' and 'database' are synonyms in terms of Hive.  At the filesystem level, it
+        is a directory under which all internal tables that belong to the namespace are stored.  Hive
+        also has a concept of external tables in which the files might exist in other locations in 
+        HDFS.
+
+
+    - All the data managed by Hive gets stored under a top-level directory defined using the 
+        'hive.metastore.warehouse.dir' parameter in the 'hive-site.xml' file.  When you install Hive for
+        the first time, it creates a default database called 'default', which itself does not have its
+        own directory.  All the internal tables created in the default database are stored under the
+        top-level directory in their respective subdirectories.
+
+
+    - Prior to the addition of the concept of databases in Hive, all user objects were created in a 
+        single namespace.  Creating multiple schemas allows users to create objects in different
+        namespaces.  So, it allows for logical grouping of various objects.  You can also assign different
+        properties (ie different owners, permissions, and warehouse directories) for different databases.
+
+
+
