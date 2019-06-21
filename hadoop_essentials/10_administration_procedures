@@ -309,3 +309,29 @@ CHAPTER 10 - BASIC HADOOP ADMINISTRATION PROCEDURES
         2. Start the gateway
 
         3. Mount HDFS
+
+
+
+- Capacity Scheduler Background
+
+    - The Capacity Scheduler is the default scheduler for YARN that enables multiple groups to
+        securely share a large Hadoop cluster.  Developed by the original Hadoop team at Yahoo, the
+        Capacity Scheduler has successfully run many of the largest Hadoop cluster.
+
+
+    - To use the Capacity Scheduler, one or more queues are configured with a predetermined fraction
+        of the total slot capacity.  This assignment guarantees a minimum amount of resources for
+        each queue.  Admins can configure soft limits and optional hard limits on the capacity
+        allocated to each queue.
+
+
+    - Each queue has strict Access Control Lists that control which users can submit applications to
+        individual queues.  Also, safeguards are in place to ensure that users cannot view or modify
+        applications from other users.
+
+
+    - The ResourceManager UI provides a graphical representation of the scheduler queues and their
+        utilization.  
+
+
+    - In addition to the Capacity Scheduler, YARN also has a Fair Scheduler that can be used.
