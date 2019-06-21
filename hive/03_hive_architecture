@@ -84,3 +84,41 @@ CHAPTER 3 - HIVE ARCHITECTURE
 
 
 
+- Hiveserver2
+
+    - As beneficial as Hive was at providing a SQL abstraction layer for running MapReduce, there were
+        still some major limitations.  One limitation was the ability for clients to connect to the
+        metastore using standard ODBC or JDBC connections, which we take for granted with relational
+        database systems.  The open source community addressed this limitation by creating the Hive
+        server.  Hive server allowed clients to access the metastore using ODBC connections.  With Hive
+        server, clients can connect to HCatalog with business intelligence applications like Excel or
+        productivity applications like Toad.
+
+
+    - There were still limitations with Hive server, such as user concurrency restrictions and LDAP
+        security integration.  Each of these components were solved with the implementation of 
+        Hiveserver2.  The Hiveserver2 architecture is based on a Thrift Service and any number of
+        sessions comprised of a driver, compiler, and executor.
+
+
+                          HiveServer2
+
+               |-----------------------------------
+               |    ODBC      ODBC       ODBC     |
+               |      |         |          |      |
+               |      v         v          v      |
+               |           THRIFT SERVICE         |
+               |                                  |
+               | Session1    Session2    Session3 |
+               |                                  |
+               |             METASTORE            |
+               ------------------------------------
+                                |
+                                v
+                               HDFS
+
+
+    - Hiveserver2 supports Kerberos, custom authentication, as well as pass-through LDAP authentication.
+        All connection components - JDBC, ODBC, and Beeline - have the ability to use any of these
+        authentication methods.  In addition, HiveServer2 can function in either HTTP mode or TCP mode.
+        HTTP mode is useful if you need HiveServer2 to act as a proxy or utilize load balancing.  
