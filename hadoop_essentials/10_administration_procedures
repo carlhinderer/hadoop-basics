@@ -187,3 +187,125 @@ CHAPTER 10 - BASIC HADOOP ADMINISTRATION PROCEDURES
 
         # Now, run the balancer
         $ hdfs balancer
+
+
+
+- HDFS Safe Mode
+
+    - When the NameNode starts, it loads the file system state from the 'fsimage' and then applies the
+        'edits' log file.  It then waits for the DataNodes to report their blocks.  During this time,
+        the NameNode stays in a read-only Safe Mode.  The NameNode leaves Safe Mode automatically
+        after the DataNodes have reported that most file system blocks are available.
+
+
+    - The administrator can place HDFS in Safe Mode or take it out of Safe mode manually:
+
+        # Enter Safe Mode
+        $ hdfs dfsadmin -safemode enter
+
+        # Exit Safe Mode
+        $ hdfs dfsadmin -safemode leave
+
+        # Check whether the system is in Safe Mode
+        $ hdfs dfsadmin -safemode get
+
+
+
+- Decomissioning HDFS Nodes
+
+    - If you need to remove a DataNode host/node from the cluster, you should decomission it first.
+        Assuming the node is responding, it can easily be decomissioned from the Ambari web UI.  
+
+
+
+- SecondaryNameNode
+
+    - To avoid long NameNode restarts and other issues, the performance of the SecondaryNameNode 
+        should be verified.  To make sure it's working correctly, we can set the value of 
+        'fs.checkpoint.period' in the 'hdfs-site.xml' file to be a short amount of time and 
+        validate that the merge is happening.  Then, we can set it back to its original value.
+
+
+    - Alternatively, we can force a checkpoint with:
+
+        $ hdfs secondarynamenode -checkpoint force
+
+
+
+- HDFS Snapshots
+
+    - HDFS snapshots are read-only, point-in-time copies of HDFS.  Snapshots can be taken on a subtree
+        of the file system or the entire file system.  Some common use cases for snapshots are data
+        backup, protection against user errors, and disaster recovery.
+
+
+    - Snapshots can be taken on any directory once the directory has been set as 'snapshottable'.  
+        A snapshottable directory is able to accomodate 65,536 simultaneous snapshots.  
+
+
+    - The following procedure will create a snapshot:
+
+        # Declare a directory snapshottable
+        $ hdfs dfsadmin -allowSnapshot  /user/hdfs/war-and-peace-input
+
+
+        # Create the snapshot
+        $ hdfs dfs -createSnapshot /user/hdfs/war-and-peace-input wapi-snap-1
+
+
+        # Verify that the snapshot was created
+        $ hdfs dfs -ls /user/hdfs/war-and-peace-input/
+
+
+        # Delete the file
+        $ hdfs dfs -rm -skipTrash /user/hdfs/war-and-peace-input/war-and-peace.txt
+
+
+        # Verify that the file has been deleted
+        $ hdfs dfs -ls /user/hdfs/war-and-peace-input/
+
+
+        # Restore the file from the snapshot
+        $ hdfs dfs -cp /user/hdfs/war-and-peace-input/.snapshot/wapi-snap-1/war-and-peace
+
+
+        # Confirm the file has been restored
+        $ hdfs dfs -ls /user/hdfs/war-and-peace-input/
+
+
+        # Delete the snapshot
+        $ hdfs dfs -deleteSnapshot /user/hdfs/war-and-peace-input wapi-snap-1
+
+
+        # Make the directory un-snapshottable
+        $ hdfs dfsadmin -disallowSnapshot /user/hdfs/war-and-peace-input
+
+
+
+- Configuring an NFSv3 Gateway to HDFS
+
+    - HDFS supports an NFS version 3 (NFSv3) gateway. This feature enables files to be easily moved 
+        between HDFS and client systems. The NFS gateway supports NFSv3 and allows HDFS to be mounted 
+        as part of the client’s local file system. 
+
+
+    - Currently the NFSv3 gateway supports the following capabilities:
+
+        1. Users can browse the HDFS file system through their local file system using an NFSv3
+             client-compatible operating system.
+
+        2. Users can download files from the HDFS file system to their local file system.
+
+        3. Users can upload files from their local file system directly to the HDFS file system.
+
+        4. Users can stream data directly to HDFS through the mount point. File append is supported, 
+             but random write is not supported.
+
+
+    - To enable the NFSv3 gateway, we need to:
+
+        1. Set the required configuration files\
+
+        2. Start the gateway
+
+        3. Mount HDFS
