@@ -122,3 +122,45 @@ CHAPTER 3 - HIVE ARCHITECTURE
         All connection components - JDBC, ODBC, and Beeline - have the ability to use any of these
         authentication methods.  In addition, HiveServer2 can function in either HTTP mode or TCP mode.
         HTTP mode is useful if you need HiveServer2 to act as a proxy or utilize load balancing.  
+
+
+
+- Client Tools
+
+    - In this book, we will most often use Hive CLI.  If you are more familiar with Toad or SQuirreL,
+        those can be used over ODBC instead.
+
+
+        # Start hive cli
+        $ hive
+
+
+        # Show all databases
+        hive> show databases;
+
+
+        # Show all tables
+        hive> show tables;
+
+
+        # See a table's column definition
+        hive> describe sample07;
+
+
+    - Another useful way to issue commands via the command line is through a browser shell.  
+
+        http://localhost:4200
+
+
+    - Another primary means of accessing Hive is through Ambari Views.  Ambari is a pluggable framework
+        allowing for developers to creates views, which can be installed and executed through the
+        Ambari interface.  Hive has its own Ambari view provided out of the box in HDP.  To get to it,
+        we click the tic-tac-toe box and select 'Hive View'.
+
+      The Hive View has 3 main sections:
+
+        1. Tool Header = access saved queries, query history, UDFs, and upload tables
+
+        2. Database Explorer = specify which database we want to use for query execution and list tables
+
+        3. Query Editor = create and execute Hive queries, profile queries, review logs and error messages
