@@ -1,0 +1,86 @@
+------------------------------------------------------------
+CHAPTER 3 - HIVE ARCHITECTURE
+------------------------------------------------------------
+
+- Hive Components
+
+    
+                            Users
+                              |
+                              v
+                CLI       Beeswax      HiveServer3         HIVE
+                              |
+                              v
+                           HCatalog
+
+          -----------------------------------------------
+             Spark           Tez          MapReduce
+
+                            YARN
+                            HDFS
+
+
+
+- HCatalog
+
+    - A key component we will need to be familiar with is HCatalog.  HCatalog is what facilitates
+        schema-on-read.  HCatalog is a separate component from Hive, but Hive and HCatalog are
+        inseparable.  When you create a Hive table, you create a structure in HCatalog.  HCatalog
+        facilitates sharing schemas across various Hadoop components.
+
+
+    - HCatalog provides a number of key benefits:
+
+        1. Provides a common schema environment for multiple tools
+
+        2. Allows for connectors to tools to read data from and write data to Hive's warehouse
+
+        3. Lets users share data across tools
+
+        4. Creates a relational structure to Hadoop's data
+
+        5. Abstracts away the how and where of data storage
+
+        6. Hides schema and storage changes from users
+
+
+    - By having HCatalog as the schema metalayer for your tools means when you create a Hive table
+        or use Pig, you do not have to be concerned about where the data is stored or the data
+        format it is stored in.  Additionally, you only need to create the table definition once
+        and you can access it using both Pig and Hive.
+
+
+    - For an example, you can issue a CREATE TABLE statement in Hive such as:
+
+        CREATE TABLE customers (
+            customerid    int,
+            firstname     string,
+            lastname      string
+        )
+        STORED AS orcfile;
+
+      This statement creates a table definition in the 'Hive Metastore'.  The definition could also
+        contain partitioning information to help with performance, free text comments describing the
+        table, or a directive on whether the table is external or internal to Hive.  
+
+      The raw data in HDFS forming the content of the table remains unchanged, but HCatalog applies
+        a structured metalayer defining the data format and data storage.  The HCatalog definition 
+        resides outside of HDFS.
+
+
+    - The data base options for the Hive Metastore are MySQL (the default), PostgreSQL, and Oracle.
+        Local metastore repository will be fine for development environments.  For production 
+        environments, you will want your Hive Metastore to be secure and protected from failure since
+        it will contain all your table definitions.
+
+      Keep in mind that the files for Hive are stored in HDFS, but the metadata defining the schema
+        for these files exists in a relational database outside of HDFS.  
+
+
+    - HCatalog is essentially an abstraction layer between data access tools such as Hive or Pig and
+        the underlying files.  In addition, HCatalog provides for an easy separation between those more
+        familiar with the operational aspects of the infrastructure and those more familiar with the LOB
+        and corporate data.
+
+
+
