@@ -205,3 +205,69 @@ CHAPTER 4 - HIVE TABLES DDL
 
         # Customer's contact details may consist of 1 or more phone numbers and 1 or more emails
         contact UNIONTYPE <int, array<int>, string, array<string>>
+
+
+
+- Tables
+
+    - A Hive data model contains a logical row/column view of data referred to as a 'table'.  However,
+        in Hive, the data exists independently of the data.  The data in a Hive table is stored in an
+        HDFS directory, and the definition of the table is stored in a relational database store
+        called HCatalog.
+
+
+    - Key differences in Hive from relational databases include:
+
+        1. The data in a Hive table is loosely coupled from its definition.  If you drop a table in Hive,
+             the table definition will be dropped independently of the underlying data.
+
+        2. A single data set in Hive can have multiple table definitions.
+
+        3. The underlying data in a Hive table can be stored in a variety of formats.
+
+
+
+- Creating Tables
+
+    - Tables are created in Hive using the CREATE TABLE statement.  The configuration specified during 
+        the creation of a table defines how Hive will interpret the underlying data.  Hive has many 
+        built-in data format interpreters, or 'SerDes' as they are called in Hive's language.  Hive
+        also allows you to create your own serializer-deserializers and just plug them into a CREATE
+        TABLE statement to enable Hive to understand the format of your data.
+
+
+    - Here is a CREATE TABLE example, which is created in the default database:
+
+        CREATE EXTERNAL TABLE customers (
+        fname           STRING,
+        lname           STRING,
+        address         STRUCT <HOUSENO:STRING, STREET:STRING, CITY:STRING, ZIPCODE:INT, 
+                                STATE:STRING, COUNTRY:STRING>,
+        active          BOOLEAN,
+        created         DATE
+        LOCATION '/user/demo/customers');
+
+
+    - Here is an example of a table created in an existing database:
+
+        CREATE EXTERNAL TABLE retail.customers (
+        fname           STRING,
+        lname           STRING,
+        address         STRUCT <HOUSENO:STRING, STREET:STRING, CITY:STRING, ZIPCODE:INT,
+                        STATE:STRING, COUNTRY:STRING>,
+        active          BOOLEAN,
+        created         DATE)
+        COMMENT "customer master record table"
+        LOCATION '/user/demo/customers/';
+
+
+
+- Listing Tables
+
+    - You can list all the existing tables using the SHOW TABLES command.
+
+        # List all the tables in the RETAIL database
+        hive> SHOW TABLES IN retail;
+
+
+    - If there are many tables, you can search with wildcards.
