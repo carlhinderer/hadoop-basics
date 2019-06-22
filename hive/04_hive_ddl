@@ -271,3 +271,71 @@ CHAPTER 4 - HIVE TABLES DDL
 
 
     - If there are many tables, you can search with wildcards.
+
+
+
+- Internal and External Tables
+
+    - External tables are created using the EXTERNAL keywords in the CREATE TABLE statement.  This is
+        the recommended table type for all production deployments.  This is because in most cases the
+        underlying data will be used for multiple use cases.  Even if it is not, the data should not
+        be dropped when the table definition is dropped.  
+
+      In the case of external tables, Hive does not drop the data from the filesystem as it does not
+        have control over it.  External tables are used in the following cases:
+
+        1. When you want to drop table definitions without worrying about deleting the underlying data
+
+        2. When the data is stored in filesystems other than HDFS (ie S3)
+
+        3. You want to use a custom location to store the table data
+
+        4. You are not creating a table based on another table (CREATE TABLE AS SELECT)
+
+        5. Data will be accessed by multiple processing engines (ie you want to read the table in 
+             Hive and also use it in a Spark program)
+
+        6. You want to create multiple tables' definitions over the same data set.  If you have multiple
+             table definitions, dropping one of them should not delete the underlying data.
+
+
+    - An internal table is a table whose data is managed by Hive.  This means when an internal table
+        is deleted, the underlying data is deleted also.  These tables are not used very often in most
+        Hadoop environments.  Internal tables are used in the following tables:
+
+        1. The data stored is temporary
+
+        2. When the only way the data is accessed is through Hive and you want Hive to completely
+             manage the lifecycle of the table and the data.
+
+
+
+- Internal and External Tables Example
+
+    # Load a file to hdfs and verify it
+    $ hdfs dfs -put /tmp/states.txt /user/demo/states/
+    $ hdfs dfs -ls /user/demo/states/
+
+
+    # Create an internal table to access the data in the 'states.txt' file
+    hive> CREATE TABLE states_internal (state string) LOCATION '/user/demo/states';
+
+
+    # Look at the table definition
+    hive> DESCRIBE FORMATTED states_internal;
+
+
+    # Query data from the internal table
+    hive> SELECT * FROM states_internal;
+
+
+    # Create an external table on the same data
+    hive> CREATE EXTERNAL TABLE states_external (state string) LOCATION '/user/demo/states';
+
+
+    # Look at the table definition
+    hive> DESCRIBE FORMATTED states_external;
+
+
+    # Query from the external table
+    hive> SELECT * FROM states_external;
