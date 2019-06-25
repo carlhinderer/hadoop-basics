@@ -166,7 +166,7 @@ CHAPTER 4 - HIVE TABLES DDL
         4. Unions
 
 
-    - A Hive array is an order collection of elements with a similar type.  
+    - A Hive array is an ordered collection of elements with a similar type.  
 
         # Creates an array named ITEMS
         ITEMS ARRAY<"Bread", 'Butter', "Organic Eggs">
@@ -339,3 +339,46 @@ CHAPTER 4 - HIVE TABLES DDL
 
     # Query from the external table
     hive> SELECT * FROM states_external;
+
+
+
+- Table Properties
+
+    - You can also specify some tabel-level properties while creating a table or by altering a table
+        using the TBLPROPTERTIES clause.  Hive has some predefined essential properties for tables, 
+        and you can also define custom properties using a key-value format to store some table-level
+        metadata or additional information about the table.
+
+
+    - Some of the important table-level properties in Hive are:
+
+        - last_modified_user (managed by Hive)
+        - last_modified_time (managed by Hive)
+        - immutable
+        - orc.compress
+        - skip.header.line.count
+
+
+    - The 'skip.header.line.count' property is often used.
+
+        $ hadoop fs -cat /user/demo/states3/states3.txt
+
+        STATE_NAME
+        ----------
+        california
+        ohio
+        north dakota
+        new york
+        colorado
+        new jersey
+
+
+        # Skip the first 2 lines when processing data
+        hive> CREATE EXTERNAL TABLE states3 (states string) LOCATION '/user/demo/states3' 
+                 TBLPROPERTIES("skip.header.line.count"="2");
+
+
+
+- Partitioning and Bucketing
+
+    - 
