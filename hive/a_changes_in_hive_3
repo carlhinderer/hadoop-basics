@@ -1,0 +1,27 @@
+------------------------------------------------------------
+A - CHANGES IN HIVE 3 / HDP 3.1
+------------------------------------------------------------
+
+- In HDP 3.0, Hive does not support the following features:
+
+    - WebHCat
+    - Hcat CLI
+    - Hive CLI (replaced by Beeline)
+    - SQL Standard Authorization
+    - MapReduce execution engine (replaced by Tez)
+    - Ambari Hive view
+
+
+
+- Only beeline is available for command-line management.  Both Hive CLI and the Hive Ambari view are
+    deprecated.  To start beeline:
+
+    $ beeline
+
+    default user: hive
+    default pw: hive
+
+
+  To exit the beeline shell:
+
+    !quit
