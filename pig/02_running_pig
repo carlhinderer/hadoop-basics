@@ -57,3 +57,64 @@ CHAPTER 2 - RUNNING PIG
 
     # Run pig locally with Spark
     $ pig_path/bin/pib -x spark_local average_dividend.pig
+
+
+
+- Running Pig on Hadoop Cluster
+
+    # Copy data file into hdfs
+    $ hdfs dfs -mkdir financial-data
+    $ hdfs dfs -put NYSE_dividends financial-data
+
+
+    # Run the Pig Latin script
+    $ pig_path/bin/pig average_dividend.pig
+
+
+    # View the results
+    $ pig_path/bin/pig -e cat average_dividend
+
+
+    # Run pig on Tez instead
+    $ pit_path/bin/pig -x spark average_dividend.pig
+
+
+    # Run pig on Spark instead
+    $ pig_path/bin/spark -X spark average_dividend.pig
+
+
+
+- Grunt
+
+    Grunt is Pig's interactive shell.  It enables you to enter Pig Latin interactively and provides
+      a shell for you to interact with HDFS. 
+
+
+      # Start grunt
+      $ pig
+
+
+      # Grunt prompt
+      grunt> dividends = load 'NYSE_dividends' as (exchange, symbol, date, dividend);
+      grunt> grouped = group dividends by symbol;
+      grunt> avg = foreach grouped generate group, AVG(dividends.dividend);
+      grunt> store avg into 'average_dividend';
+
+
+
+- Controlling Pig From Grunt
+
+    # Kill a Pig application
+    grunt> kill <application_id>
+
+
+    # Execute a Pig Latin script
+    grunt> exec [-param param_name = param_value] [-param_file filename] [script]
+
+
+    # Run a script in the current Grunt shell
+    grunt> run [-param param_name = param_value] [-param_file filename] script
+
+
+    # Run a shell command
+    grunt> sh shell_commands
