@@ -1,0 +1,59 @@
+------------------------------------------------------------
+CHAPTER 2 - RUNNING PIG
+------------------------------------------------------------
+
+- Running Pig in Local Mode
+
+    Here, we run a pig script 'average_dividend.pig' on the 'NYSE_dividends' file in the book's data set.
+      The simple script loads the file, groups the file's rows by stock ticker symbol, and then
+      calculates the average dividend for each symbol.
+
+
+      # Look at the first 5 rows of the 'NYSE_dividends' file
+      $ head -n 5 NYSE_dividends
+
+      NYSE    CPO 2009-12-30  0.14
+      NYSE    CPO 2009-09-28  0.14
+      NYSE    CPO 2009-06-26  0.14
+      NYSE    CPO 2009-03-27  0.14
+      NYSE    CPO 2009-01-06  0.14
+
+
+    Here is our simple script:
+
+      # average_dividend.pig
+
+      dividends = load 'NYSE_dividends' as (exchange, symbol, date, dividend);
+      grouped   = group dividends by symbol;
+      avg       = foreach grouped generate group, AVG(dividends.dividend);
+      store avg into 'average_dividend';
+
+
+    To run it locally, we switch into the directory where 'NYSE_dividends' is located, and use the 
+      command:
+
+      # Run the pig script (pig_path is the path to the Pig installation on your local machine)
+      $ pig_path/bin/pig -x local average_dividend.pig
+
+
+    When we look at the first 5 lines of the results:
+
+      # Look at the results
+      $ cat average_dividend/part-r-00000 | head -5
+
+      CA      0.04
+      CB      0.35
+      CE      0.04
+      CF      0.1
+      CI      0.04
+
+
+
+- Running Pig Locally with Tez or Spark
+
+    # Run pig locally with Tez
+    $ pig_path/bin/pig -x tez_local average_dividend.pig
+
+
+    # Run pig locally with Spark
+    $ pig_path/bin/pib -x spark_local average_dividend.pig
