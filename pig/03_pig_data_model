@@ -1,0 +1,75 @@
+------------------------------------------------------------
+CHAPTER 3 - PIG DATA MODEL
+------------------------------------------------------------
+
+- Scalar Types
+
+    Type           Example
+    ---------------------------------
+    Int            42
+    Long           5000000000L
+    BigInteger     (No constants)
+
+    Float          3.14f
+    Double         2.71828
+    BigDecimal     (No constants)
+
+    Chararray      'Fred'
+
+    Boolean        true
+
+    datetime
+
+    bytearray
+
+
+
+- Complex Types
+
+    - Maps
+
+        A map in Pig is a chararray-to-data element mapping, where the element can be any Pig type, 
+          including a complex type.  
+
+        There are 2 types of maps, typed and untyped.  For a typed map, the value of the map must be the
+          declared data type.
+
+        Example:
+
+          ['name'#'bob', 'age'#55]
+
+
+    - Tuples
+
+        A tuple is a fixed-length, ordered collection of Pig data elements.  Tuples are divided into
+          fields, with each field containing one data element.  These elements can be of any type.  A
+          tuple is analogous to a row in SQL.
+
+        Because tuples are ordered, it is possible to refer to the fields by position.  A tuple can, but
+          is not required to, have a schema associated with it that describes each field's type and
+          provides a name for each field.
+
+        Example:
+
+          ('bob', 55)
+
+
+    - Bags
+
+        A bag is an unordered collection of tuples.  Because it has no order, it is not possible to 
+          reference tuples in a bag by position.  Like tuples, a bag can, but is not required to, have
+          a schema associated with it.
+
+        Example:
+
+          {('bob', 55), ('sally', 52), ('john', 25)}
+
+
+
+- Nulls
+
+    Pig includes the concept of a data element being null.  Data of any type can be null.  This is similar
+      to the concept of NULL in SQL.
+
+    Unlike SQL, Pig does not have a notion of constraints on the data.  In the context of nulls, this means
+      any data element can always be null.
