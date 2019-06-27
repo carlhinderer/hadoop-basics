@@ -100,3 +100,102 @@ CHAPTER 1 - PIG
         cntd  = foreach grpd generate group, COUNT(words);
         -- Print out the results.
         dump cntd;
+
+
+    - Pig Latin provides operators that MR does not, especially 'join'.  
+
+
+    - Pig ensures that data is evenly distributed to reducers.
+
+
+    - Pig code takes much less time to write than equivalent MR code.
+
+
+
+- Another Pig Example
+
+    This example will find the 5 pages most visited by users between the ages of 18 and 25.
+
+    Users = load 'users' as (name, age);
+    Fltrd = filter Users by age >= 18 and age <= 25;
+    Pages = load 'pages' as (user, url);
+    Jnd   = join Fltrd by name, Pages by user;
+    Grpd  = group Jnd by url;
+    Smmd  = foreach Grpd generate group, COUNT(Jnd) as clicks;
+    Srtd  = order Smmd by clicks desc;
+    Top5  = limit Srtd 5;
+    store Top5 into 'top5sites';
+
+
+
+- Uses of Pig
+
+    1. Data Pipelines
+
+        [Example #1 - web company]
+        A. Web server logs are loaded into HDFS
+        B. Pig is used to clean out records with corrupt data
+        C. Pig is used to join web event data against user databases to connect cookies to users
+
+        [Example #2 - behavior prediction]
+        A. Pig is used to scan through user interactions with a website and split users into segments
+        B. For each segment, a math model is produced to predict how members of segment will respond to ads
+
+    2. Research on Raw Data
+
+    3. Iterative Processing
+
+        [Example #3 - news website]
+        A. News website keeps a graph of all the news stories on the web it is tracking
+        B. Every 5 minutes, a new set of stories comes in, and engine must integrate them into the graph
+        C. Pig iteratively joins the new stories to the behavior targeting model of graph
+
+
+
+- Pig is for Batch Processing
+
+    One point is that Pig (like MR) is oriented around the batch processing of data.  If you need to 
+    process GBs or TBs of data, Pig is a good choice.  It expects to read all the records of a file and
+      write all of its output sequentially.  
+
+    For workloads that require writing single or small groups of records, or looking up many different
+      records in random order, Pig (like MR) is not a good choice.
+
+
+
+- The Pig Philosophy
+
+    1. Pigs eat anything
+
+        - Pig can operate on data whether it has metadata or not
+        - Pig can operate on data that is relational, nested, or unstructured
+        - Pig can easily be extended to operate on key/value store, databases, etc...
+
+
+    2. Pigs live anywhere
+
+        - Pig is a language for parallel data processing anywhere
+        - Pig was implemented first on Hadoop, but is not intended to be only on Hadoop
+
+
+    3. Pigs are domestic animals
+
+        - Pig is easily controlled and modified by its users
+        - Pig allows integration of user code whenever possible, so it supports UDFs
+        - Pig supports external executables and MapReduce JARs
+        - Pig's optimizer can be configured based on user needs
+
+
+    4. Pigs fly
+
+        - Pig processes data quickly
+        - Performance is constantly improving
+
+
+
+- History of Pig
+
+    - Started as a research project at Yahoo in 2007
+    - Became official Hadoop subproject in 2008
+    - Added to Amazon EMR in 2009
+    - Became top-level Apache project in 2010
