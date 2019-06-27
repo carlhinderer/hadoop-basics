@@ -1,0 +1,102 @@
+------------------------------------------------------------
+CHAPTER 1 - PIG
+------------------------------------------------------------
+
+- Pig Latin
+
+    - Pig Latin is a parallel data flow language.  This means it allows users to describe how data from 
+        one or more inputs should be read, processed, and then stored to one or more outputs in parallel.
+        
+
+    - These data flows can be simple linear flows, or complex workflows that include points where multiple
+        inputs are joined and data is split into multiple streams to be processed by different operators.
+        A Pig Latin script describes a DAG, where the edges are data flows and the nodes are operators
+        that process the data.
+
+
+
+- Query vs Data Flow Languages
+
+    - SQL is a query language.  It lets users describe what question they want answered, but not how they
+        want it answered.  In Pig Latin, the user describes exactly how to process the input data.
+
+
+    - In SQL, when users want to do several data operations together, they must either write separate
+        queries, use temporary tables, or use nested subqueries.  Pig is designed with a long series of
+        data operations in mind.  
+
+
+    - SQL was designed for a RDBMS.  Pig was designed for Hadoop.  In Hadoop, data may not be properly
+        constrained and is rarely normalized.  Pig can operate on data directly in HDFS, it does not
+        require data to be loaded into tables first.
+
+
+
+- Pig on Hadoop
+
+    - Pig can run on MapReduce, Tez, or Spark.
+
+    - Tez is an alternative to MR for processing data on Hadoop.  It executes DAGs of tasks.  Tez is more
+        general and flexible than MR.  It provides better performance and lower latency. 
+
+      Tez is a low-level execution engine and is not meant to be used by end users directly.  It can be
+        thought of as assembly language on Hadoop.  
+
+
+
+- Pig vs MapReduce
+
+    - MapReduce Hello World Example
+
+        Input:
+        Mary had a little lamb
+        its fleece was white as snow
+        and everywhere that Mary went
+        the lamb was sure to go
+
+
+        Mary had a         its fleece was       and everywhere       the lamb was
+        little lamb        white as snow        that Mary went       sure to go
+            |                    |                     |                   |
+            v                    v                     v                   v
+           map                  map                   map                 map
+            |                    |                     |                   |
+            v                    v                     v                   v
+          Mary 1               its 1                  and 1              the 1
+          had 1                fleece 1               everywhere 1       lamb 1
+          a 1                  was 1                  that 1             was 1
+          little 1             white 1                Mary 1             sure 1
+          lamb 1               as 1                   went 1             to 1
+                               snow 1                                    go 1
+
+            / \                 / \                     / \               / \
+
+                    reduce                         reduce
+                       |                              |
+                       v                              v
+                    had 1                           Mary 2
+                    a 1                             was 2
+                    little 1                        white 1
+                    lamb 2                          snow 1
+                    ...                             ...
+
+
+    - Pig Example
+
+        -- Load input from the file named Mary, and call the single 
+        -- field in the record 'line'.
+        input = load 'mary' as (line);
+
+        -- TOKENIZE splits the line into a field for each word.
+        -- flatten will take the collection of records returned by
+        -- TOKENIZE and produce a separate record for each one, calling the single
+        -- field in the record word.
+        words = foreach input generate flatten(TOKENIZE(line)) as word;
+
+        -- Now group them together by each word.
+        grpd  = group words by word;
+
+        -- Count them.
+        cntd  = foreach grpd generate group, COUNT(words);
+        -- Print out the results.
+        dump cntd;
