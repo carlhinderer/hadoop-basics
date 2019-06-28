@@ -73,3 +73,72 @@ CHAPTER 3 - PIG DATA MODEL
 
     Unlike SQL, Pig does not have a notion of constraints on the data.  In the context of nulls, this means
       any data element can always be null.
+
+
+
+- Specifying Schemas
+
+    - Pig has a very lax attitude when it comes to schemas.  If a schema for data is available, Pig will
+        make use of it, both for up-front error-checking and for optimization.  But if no schema is 
+        available, Pig will still process the data, making the best guesses it can on how the script should
+        treat the data.
+
+
+    - The easiest way to communicate the schema of your data to pig is to explicity tell Pig what it is
+        when loading the data.
+
+        dividends = load 'NYSE_dividends' as
+                          (exchange:chararray, symbol:chararray, date:chararray, dividend:float);
+
+      Pig now expects your data to have 4 fields.  If it has more, it will truncate the extra ones.  If 
+        it has less, it will pad the ends of the records with nulls.
+
+
+    - It is also possible to specify the schema without giving explicit data types.  In this case, the
+        data type is assumed to be bytearray:
+
+        dividends = load 'NYSE_dividends' as (exchange, symbol, date, dividend);
+
+
+    - When you specify a schema, you do not have to declare inner schemas of comples types, but you can
+        if you want to.  For instance, you can specify a tuple without specifying the fields, or you
+        can specify the fields.
+
+
+
+- Loading Schemas
+
+    - Runtime declaration of schemas is a flexible approach.  However, for production systems that run
+        over the same data every day, it has a couple drawbacks.  First, you have to change your code
+        if a schema changes.  Also, having to manually specify the schema in code is painful if you
+        have 100 columns.
+
+
+    - If the 'load' function you are using already knows the schema of the data, the function can 
+        communicate that to Pig.  The 'load' function might already know the schema because it is 
+        stored in a metadata repository such as HCatalog, or it might be stored in the data itself
+        (ie if its stored in Avro, ORC, or Parquet format).  In this case, you do not have to declare
+        the schema as part of the 'load' statement.\
+
+
+        mdata = load 'mydata' using HCatLoader();
+        cleansed = filter mdata by name is not null;
+        ...
+
+
+
+- Casts
+
+    - Values can be casted into other compatible types.  For instance, you can take a column of
+        integers and cast them to a double or a string.
+
+
+      --unintended_walks_cast.pig
+      player     = load 'baseball' as (name:chararray, team:chararray,
+                      pos:bag{t:(p:chararray)}, bat:map[]);
+      unintended = foreach player generate (int)bat#'base_on_balls' - (int)bat#'ibbs';
+
+
+    - Pig will always widen types implicitly when it is needed to complete an operation without losing
+        precision.  So, adding an int and a float will produce a float.  Adding a float to a double
+        will produce a double.
