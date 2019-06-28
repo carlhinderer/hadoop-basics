@@ -1,0 +1,96 @@
+------------------------------------------------------------
+CHAPTER 4 - PIG LATIN
+------------------------------------------------------------
+
+- Preliminaries
+
+    - Pig Latin is a data flow language.  Each processing step results in a new dataset or relation.
+        In "input = load 'data'", 'input' is the name of a relation that results from loading the
+        dataset 'data'.  Relations are immutable.
+
+
+    - In addition to relation names, Pig also has field names.  They name a field (or column) in a
+        relation.  Both relation and field names must start with an alphabetic character, then contain
+        0 or more alphanumeric or underscore characters.
+
+
+    - Keywords in Pig Latin are not case-sensitive, so 'LOAD' is the same as 'load'.  But, relation and
+        field names are case-sensitive, as are UDF names.
+
+
+    - Pig Latin has 2 types of comments:
+
+        -- This is a single-line comment
+
+
+        /*
+         * This is a multiline comment
+         */
+
+
+        B = load /* comment in the middle */ 'bar';
+
+
+
+- The 'load' Statement
+
+    - By default, 'load' looks for your data in tab-separated form (and your Pig jobs run) on HDFS in 
+        users/yourname.  You can also specify relative pathnames or full URLs.
+
+
+        -- Load with relative pathname
+        divs = load '/data/examples/NYSE_dividends';
+
+
+        -- Load with full URL
+        divs = load 'hdfs://nn.acme.com/data/examples/NYSE_dividends';
+
+
+    - In practice, most of your data will not be in tab-separated text files.  Pig allows you to specify
+        the function for loading your data with the 'using' clause.
+
+
+        -- Load data from HBase using the HBase loader
+        divs = load 'NYSE_dividends' using HBaseStorage();
+
+
+    - If you don't specify a load function, the built-in function 'PigStorage' will be used by default.
+        You can also pass arguments to your load function via the 'using' clause.  
+
+
+        -- Read comma-separated data
+        divs = load 'NYSE_dividends' using PigStorage(',');
+
+
+    - You can also apply a schema.
+
+
+        -- Load with a schema
+        divs = load 'NYSE_dividends' as (exchange, symbol, date, dividends);
+
+
+
+- Loading Entire Directories
+
+    - When specifying a file to read from HDFS, you can also specify a directory.  In this case, Pig will
+        use all the files in the directory as input.  
+
+
+    - 'PigStorage' and 'TextLoader', the 2 built-in Pig load functions that operate on HDFS files, 
+        support globs.  With globs, you can read multiple files that are not under the same directory
+        or read some but not all files in a directory.
+
+
+        Glob          Meaning
+        -----------------------------------
+        ?             Matches any single character.
+        *             Matches zero or more characters.
+        [abc]         Matches a single character from the character set (a,b,c).
+        [a-z]         Matches a single character from the character range (a..z), inclusive. The first 
+                        character must be lexicographically less than or equal to the second character.
+        [^abc]        Matches a single character that is not in the character set (a,b,c). The ^ 
+                        character must appear immediately to the right of the opening bracket.
+        [^a-z]        Matches a single character that is not from the character range (a..z), inclusive. 
+                        The ^ character must appear immediately to the right of the opening bracket.
+        \c            Removes (escapes) any special meaning of the character c.
+        {ab,cd}       Matches a string from the string set {ab,cd}.
