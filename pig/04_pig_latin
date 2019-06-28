@@ -94,3 +94,44 @@ CHAPTER 4 - PIG LATIN
                         The ^ character must appear immediately to the right of the opening bracket.
         \c            Removes (escapes) any special meaning of the character c.
         {ab,cd}       Matches a string from the string set {ab,cd}.
+
+
+
+- The 'store' Statement
+
+    - The 'store' statement is used for writing data after you are done processing it.  By default,
+        Pig stores your data on HDFS in a tab-delimited file using 'PigStorage'.
+
+
+        -- Store processed data into a directory named 'processed'
+        store processed into '/data/examples/processed';
+
+
+        -- Use a full URL instead
+        store processed into 'hdfs://nn.acme.com/data/examples/processed';
+
+
+    - If you don't specify a store function, 'PigStorage' will be used.  You can specify a different
+        store function with a 'using' clause.
+
+
+        -- Store processed data into HBase
+        store processed into 'processed' using HBaseStorage();
+
+
+    - You can also pass arguments to your 'store' function.  
+
+
+        -- Store data as comma-separated
+        store processed into 'processed' using PigStorage(',');
+
+
+
+- The 'dump' Statement
+
+    - Sometimes, instead of storing data, you want to see it on the screen instead.  This is particularly
+        useful during debugging and prototyping sessions.  It can also be useful for quick ad hoc jobs.
+
+
+        -- Direct the output of the script to the screen
+        dump processed;
