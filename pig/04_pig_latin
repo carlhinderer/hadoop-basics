@@ -135,3 +135,84 @@ CHAPTER 4 - PIG LATIN
 
         -- Direct the output of the script to the screen
         dump processed;
+
+
+
+- The 'foreach' Statement
+
+    - The 'foreach' statement takes a set of expressions and applies them to every record in the data
+        pipeline.  From these expressions it generates new records to send down the pipeline to the
+        next operator.  It is Pig's projection operator.
+
+
+        -- Load the entire records, then remove all but the user and id fields
+        A = load 'input' as (user:chararray, id:long, address:chararray, 
+                             phone:chararray, preferences:map[]);
+        B = foreach A generate user, id;
+
+
+
+- Expressions in 'foreach'
+
+    - 'foreach' supports a list of expressions.  The simplest are constants and field references.  Field
+        references can be by name or by position.  Positional references are preceded by '$' and start
+        from zero.
+
+
+        prices = load 'NYSE_daily' as (exchange, symbol, date, open, high, low, close, volume, adj_close);
+
+        -- Reference by field name
+        gain   = foreach prices generate close - open;
+
+        -- Reference by position
+        gain2  = foreach prices generate $6 - $3;
+
+
+    - You can also refer to all fields using an asterisk ('*').  You can refer to ranges of fields using
+        2 periods ('..').
+
+
+        prices    = load 'NYSE_daily' as (exchange, symbol, date, open, high, low, 
+                                          close, volume, adj_close);
+
+        -- Get ranges of fields
+        beginning = foreach prices generate ..open;
+        middle    = foreach prices generate open..close;
+        end       = foreach prices generate volume..;
+
+
+    - Basic arithmetic operations and conditions can be used.
+
+        -- Use condition
+        daily = load 'NYSE_daily' as (exchange:chararray, symbol:chararray, date:chararray, 
+                                      open:float, high:float, low:float, close:float,
+                                      volume:int, adj_close:float);
+        updown = foreach daily generate (close>open?'up':'down');
+
+
+    - To extract data from complex types, use the projection operators.  For maps, this is '#'.
+
+        -- Extract data from a map
+        bball = load 'baseball' as (name:chararray, team:chararray, 
+                                    position:bag{t:(p:chararray)}, bat:map[]);
+        avg = foreach bball generate bat#'batting_average';
+
+
+    - To extract data from tuples, use the field names or field positions.  Referencing a field name
+        that doesn't exist in the tuple will produce an error.
+
+        -- Extract data from a tuple
+        A = load 'input' as (t:tuple(x:int, y:int));
+        B = foreach A generate t.x, t.$1;
+
+
+    - When you project fields in a bag, you are creating a new bag with only those fields.  
+
+        -- Create a new bag with selected fields
+        A = load 'input' as (b:bag{t:(x:int, y:int)});
+        B = foreach A generate b.x;
+
+      This will produce a new bag whose tuples have only the field 'x' in them.
+
+        -- Project multiple fields in a bag
+        B = foreach A generage b.(x, y);
