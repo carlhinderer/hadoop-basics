@@ -45,6 +45,38 @@
 
 
 
+- Example - SQL Queries
+
+    # Convert our DataFrame into a view so we can run SQL queries
+    >>> flightData2015.createOrReplaceTempView("flight_data_2015")
+
+
+    # If we run a SQL query and a DataFrame transformation, they have the same explain plan!
+    >>> sqlWay = spark.sql("""
+        SELECT DEST_COUNTRY_NAME, count(1)
+        FROM flight_data_2015
+        GROUP BY DEST_COUNTRY_NAME
+        """)
+
+    >>> dataFrameWay = flightData2015 \
+                       .groupby("DEST_COUNTRY_NAME") \
+                       .count()
+
+    >>> sqlWay.explain()
+    >>> dataFrameWay.explain()
+
+
+    # DataFrames have lots of built-in manipulations
+
+    # Sql way
+    >>> spark.sql("SELECT max(count) from flight_data_2015").take(1)
+
+    # Python way
+    >>> from pyspark.sql.functions import max
+    >>> flightData2015.select(man("count")).take(1)
+
+
+
 - Notes
 
     - A 'partition' is a collection of rows that sits on one machine in the cluster.
