@@ -77,6 +77,68 @@
 
 
 
+- Example - More Advanced SQL
+
+    # Begin with simple aggregation
+    >>> maxSql = spark.sql("""
+        SELECT DEST_COUNTRY_NAME, sum(count) as destination_total
+        FROM flight_data_2015
+        GROUP BY DEST_COUNTRY_NAME
+        ORDER BY sum(count) DESC
+        LIMIT 5
+        """)
+
+
+    # Show the results in the console
+    >>> maxSql.show()
+
+    +-----------------+-----------------+
+    |DEST_COUNTRY_NAME|destination_total|
+    +-----------------+-----------------+
+    |    United States|           411352|
+    |           Canada|             8399|
+    |           Mexico|             7140|
+    |   United Kingdom|             2025|
+    |            Japan|             1548|
+    +-----------------+-----------------+
+
+
+    # Run the same query with a data frame
+    >>> from pyspark.sql.functions import desc
+
+    >>> flightData2015 \
+            .groupBy("DEST_COUNTRY_NAME") \
+            .sum("count") \
+            .withColumnRenamed("sum(count)", "destination_total") \
+            .sort(desc("destination_total")) \
+            .limit(5) \
+            .show()
+
+
+    Here, we have a DAG of 7 steps in the execution plan.
+
+      1. read = Spark does not actually read data until an action is called on that data.
+
+      2. groupBy = When we called 'groupBy', we end up with a 'RelationalGroupedDataset', which is a 
+                     DataFrame that has a grouping specified but needs the user to specify an aggregation
+                     before it can be queried further.  Basically, we specified we're going to be
+                     grouping by a key, and now we're going to perform an aggregation over each of the
+                     keys.
+
+      3. sum = Here, we actually specify that aggregation.  The result of the 'sum' method call is a new
+                 DataFrame.
+
+      4. withColumnRenamed = This is a simple renaming, with the original column name and new column name
+                               as parameters.
+
+      5. sort = Sorts the data.
+
+      6. limit = Specifies that we only want the first 5 values in our final DataFrame.
+
+      7. show = Our action that requires the entire series of transformations to execute.
+
+
+
 - Notes
 
     - A 'partition' is a collection of rows that sits on one machine in the cluster.
