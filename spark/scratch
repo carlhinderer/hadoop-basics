@@ -1,9 +1,5 @@
 
-
-In pyspark console
-------------------------------------------------------------------------
-
-- First Example
+- Example - Pyspark Console
 
     # Get the spark session
     >>> spark
@@ -22,19 +18,47 @@ In pyspark console
 
 
 
+- Example - Flight Data
 
-Notes
-------------------------------------------------------------------------
+    # Read flight data with schema inference
+    >>> flightData2015 = spark \
+                         .read \
+                         .option("inferSchema", "true") \
+                         .option("header", "true") \
+                         .csv('/spark-book/data/flight-data/csv/2015-summary.csv')
 
-- A 'partition' is a collection of rows that sits on one machine in the cluster.
 
-- With 'narrow transformations', each input partition will contribute to only one
-    output partition.  Spark pipelines these, and they're all performed in memory.
+    # Look at the first 5 rows of data
+    >>> flightData2015.take(5)
 
-- With 'wide transformations', many input partitions will contribute to many
-    output partitions.  When we perform a shuffle, Spark writes the results to disk.
 
-- 3 Kinds of Actions:
-    1. Actions to view data in console
-    2. Actions to collect data to native objects in language
-    3. Actions to write to output data sources
+    # Run the explain plan on sorting the data by count
+    >>> flightData2015.sort("count").explain()
+
+
+    # Reduce the number of shuffle partitions, default is 200
+    >>> spark.conf.set("spark.sql.shuffle.partitions", "5")
+
+
+    # Sort the data by count and get the lowest 2
+    >>> flightData2015.sort("count").take(2)
+
+
+
+- Notes
+
+    - A 'partition' is a collection of rows that sits on one machine in the cluster.
+
+
+    - With 'narrow transformations', each input partition will contribute to only one
+        output partition.  Spark pipelines these, and they're all performed in memory.
+
+
+    - With 'wide transformations', many input partitions will contribute to many
+        output partitions.  When we perform a shuffle, Spark writes the results to disk.
+
+
+    - 3 Kinds of Actions:
+        1. Actions to view data in console
+        2. Actions to collect data to native objects in language
+        3. Actions to write to output data sources
