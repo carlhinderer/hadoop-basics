@@ -1,0 +1,40 @@
+
+
+In pyspark console
+------------------------------------------------------------------------
+
+- First Example
+
+    # Get the spark session
+    >>> spark
+
+
+    # Create a DataFrame with 1 column and 1000 rows, with values 0-999
+    >>> myRange = spark.range(1000).toDF("number")
+
+
+    # Transformation to get all even numbers in our DataFrame
+    >>> divisBy2 = myRange.where("number % 2 = 0")
+
+
+    # Perform an action to get the series of transformations to execute
+    >>> divisBy2.count()
+
+
+
+
+Notes
+------------------------------------------------------------------------
+
+- A 'partition' is a collection of rows that sits on one machine in the cluster.
+
+- With 'narrow transformations', each input partition will contribute to only one
+    output partition.  Spark pipelines these, and they're all performed in memory.
+
+- With 'wide transformations', many input partitions will contribute to many
+    output partitions.  When we perform a shuffle, Spark writes the results to disk.
+
+- 3 Kinds of Actions:
+    1. Actions to view data in console
+    2. Actions to collect data to native objects in language
+    3. Actions to write to output data sources
