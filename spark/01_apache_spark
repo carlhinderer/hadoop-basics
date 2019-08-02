@@ -16,18 +16,18 @@ CHAPTER 1 - APACHE SPARK
 
 - Spark Components
 
-    Structured Streaming
-    Advanced Analytics
-    Libraries and Ecosystems
+      Structured Streaming
+      Advanced Analytics
+      Libraries and Ecosystems
 
-    [Structured APIs]
-    Datasets
-    DataFrames
-    SQL
+      [Structured APIs]
+      Datasets
+      DataFrames
+      SQL
 
-    [Low-level APIs]
-    RDDs
-    Distributed Variables
+      [Low-level APIs]
+      RDDs
+      Distributed Variables
 
 
 

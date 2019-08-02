@@ -96,7 +96,9 @@ CHAPTER 4 - STRUCTURED API OVERVIEW
 - Columns
 
     - Columns represent a simple type like an integer or string, a complex type like an array or map, 
-        or a null value.  Spark tracks all of this type information for you and offers a variety of ways, with which you can transform columns.  For the most part you can think about Spark Column types as columns in a table.
+        or a null value.  Spark tracks all of this type information for you and offers a variety of ways, 
+        with which you can transform columns.  For the most part you can think about Spark Column types as 
+        columns in a table.
 
 
 
