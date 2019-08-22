@@ -1,177 +1,262 @@
----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 CHAPTER 5 - BASIC STRUCTURED OPERATIONS
----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
-- Creating a DataFrame
+# Create a DataFrame to work with
+> df = spark.
+           read.
+           format("json").
+           load("/data/flight-data/json/2015-summary.json")
 
-    # This creates the DataFrame with which we can work
-    >>> df = spark.read.format("json").load("/data/flight-data/json/2015-summary.json")
+# Look at the schema of the dataframe
+> df.printSchema()
 
-    # Look at our schema
-    >>> df.printSchema()
 
 
+# Check the schema during loading
+# The schema has a name, type, nullable, and optional metadata for each column
+> spark.
+      read.
+      format("json").
+      load("/data/flight-data/json/2015-summary.json").
+      schema
 
-- Schemas
+StructType(List(StructField(DEST_COUNTRY_NAME,StringType,true),
+                StructField(ORIGIN_COUNTRY_NAME,StringType,true),
+                StructField(count,LongType,true)))
 
-    - A schema defines the column names and types of a DataFrame.  We can either let a data source
-        define the schema ('schema-on-read') or we can define it explicitly ourselves.
 
 
-    - Deciding whether you need to define a schema prior to reading in your data depends on your 
-        use case. For ad hoc analysis, schema-on-read usually works just fine (although at times it 
-        can be a bit slow with plain-text file formats like CSV or JSON). 
+# Manually specify the schema
+> from pyspark.sql.types import StructField, StructType, StringType, LongType
 
-      However, this can also lead to precision issues like a long type incorrectly set as an integer 
-        when reading in a file. When using Spark for production Extract, Transform, and Load (ETL), it 
-        is often a good idea to define your schemas manually, especially when working with untyped 
-        data sources like CSV and JSON because schema inference can vary depending on the type of data 
-        that you read in.
+> myManualSchema = StructType([
+                       StructField("DEST_COUNTRY_NAME", StringType(), True),
+                       StructField("ORIGIN_COUNTRY_NAME", StringType(), True),
+                       StructField("count", LongType(), False, metadata={"hello":"world"})
+                   ])
 
+> df = spark.
+           read.
+           format("json").
+           schema(myManualSchema).
+           load("/data/flight-data/json/2015-summary.json")
 
-    - Here, we infer the schema for our json flight data file.
 
-        # Load the json file and infer the schema
-        >>> spark.read.format("json").load("/data/flight-data/json/2015-summary.json").schema
 
-        StructType(List(StructField(DEST_COUNTRY_NAME,StringType,true),
-        StructField(ORIGIN_COUNTRY_NAME,StringType,true),
-        StructField(count,LongType,true)))
+# Refer to columns
+> from pyspark.sql.functions import col, column
+> col("someColumnName")
+> column("someColumnName")
 
+# Explicitly refer to column on a single dataframe (used for joins)
+> df.col("count")
 
-    - A schema is a 'StructType' made up of a number of fields, 'StructFields', that have a name, type, 
-        a Boolean flag which specifies whether that column can contain missing or null values, and, 
-        finally, users can optionally specify associated metadata with that column. The metadata is a 
-        way of storing information about this column (Spark uses this in its machine learning library).
 
-      Schemas can contain other StructTypes (Spark’s complex types). If the types in the data (at 
-        runtime) do not match the schema, Spark will throw an error. The example that follows shows 
-        how to create and enforce a specific schema on a DataFrame.
 
+# Columns are expressions
+> from pyspark.sql.functions import expr
 
-        >>> from pyspark.sql.types import StructField, StructType, StringType, LongType
+> expr("(((someCol + 5) * 200) - 6) < otherCol")
 
-        >>> myManualSchema = StructType([
-                               StructField("DEST_COUNTRY_NAME", StringType(), True),
-                               StructField("ORIGIN_COUNTRY_NAME", StringType(), True),
-                               StructField("count", LongType(), False, metadata={"hello":"world"})
-                             ])
 
-        >>> df = spark.read.format("json").schema(myManualSchema)\
-                                          .load("/data/flight-data/json/2015-summary.json")
 
+# Get all columns in a DataFrame
+> spark.
+      read.
+      format("json").
+      load("/data/flight-data/json/2015-summary.json").
+      columns
 
 
-- Columns and Expressions
 
-    - Columns in Spark are similar to columns in a spreadsheet, R dataframe, or pandas DataFrame. You 
-        can select, manipulate, and remove columns from DataFrames and these operations are 
-        represented as expressions.
+# Get the first row in a DataFrame
+> df.first()
 
 
-    - To Spark, columns are logical constructions that simply represent a value computed on a per-record
-        basis by means of an expression. This means that to have a real value for a column, we need to 
-        have a row; and to have a row, we need to have a DataFrame. You cannot manipulate an individual
-        column outside the context of a DataFrame; you must use Spark transformations within a DataFrame 
-        to modify the contents of a column.
 
+# Create a row
+> from pyspark.sql import Row
+> myRow = Row("Hello", None, 1, False)
 
 
-- Columns
 
-    - There are a lot of different ways to construct and refer to columns but the two simplest ways are 
-        by using the 'col' or 'column' functions. To use either of these functions, you pass in a column 
-        name.
+# Access values of rows
+> myRow[0]
+> myRow[2]
 
-        >>> from pyspark.sql.functions import col, column
-        >>> col("someColumnName")
-        >>> column("someColumnName")
 
 
-    - If you need to refer to a specific DataFrame's column, you can use the 'col' method on the specific
-        DataFrame.  
+# DataFrame Transformations
+      
+    1. We can add rows or columns
+    2. We can remove rows or columns
+    3. We can transform a row into a column (or vice versa)
+    4. We can change the order of rows based on the values in columns
 
-        >>> df.col("count")
 
 
+# Create a DataFrame from a raw source and create a temporary view to query
+> df = spark.read.format("json").load("/data/flight-data/json/2015-summary.json")
 
-- Expressions
+> df.createOrReplaceTempView("dfTable")
 
-    - Columns are 'expressions'.  An expression is a set of transformations on one or more values in 
-        a record in a DataFrame. Think of it like a function that takes as input one or more column 
-        names, resolves them, and then potentially applies more expressions to create a single value 
-        for each record in the dataset. Importantly, this “single value” can actually be a complex 
-        type like a Map or Array.
 
 
-    - In the simplest case, an expression, created via the expr function, is just a DataFrame column
-        reference. In the simplest case, expr("someCol") is equivalent to col("someCol").
+# Create rows manually
+> from pyspark.sql import Row
+> from pyspark.sql.types import StructField, StructType, StringType, LongType
 
+> myManualSchema = StructType([
+                               StructField("some", StringType(), True),
+                               StructField("col", StringType(), True),
+                               StructField("names", LongType(), False)
+                              ])
 
+> myRow = Row("Hello", None, 1)
+> myDf = spark.createDataFrame([myRow], myManualSchema)
+> myDf.show()
 
-- Columns as Expressions
 
-    - Columns provide a subset of expression functionality. If you use 'col()'' and want to perform 
-        transformations on that column, you must perform those on that column reference. When using 
-        an expression, the 'expr' function can actually parse transformations and column references 
-        from a string and can subsequently be passed into further transformations. Let’s look at some
-        examples.
 
+# Get 2 destination country names
+> df.select("DEST_COUNTRY_NAME").show(2)
 
-    - expr("someCol - 5") 
-        is the same transformation as performing col("someCol") - 5, 
-        or even expr("someCol") - 5. 
+# In SQL instead
+> SELECT DEST_COUNTRY_NAME FROM dfTable LIMIT 2
 
-      That’s because Spark compiles these to a logical tree specifying the order of operations. This 
-        might be a bit confusing at first, but remember a couple of key points:
++-----------------+
+|DEST_COUNTRY_NAME|
++-----------------+
+|    United States|
+|    United States|
++-----------------+
 
-        - Columns are just expressions.
 
-        - Columns and transformations of those columns compile to the same logical plan as parsed
-            expressions.
 
+# Select multiple columns
+> df.select("DEST_COUNTRY_NAME", "ORIGIN_COUNTRY_NAME").show(2)
 
-    - Let’s ground this with an example:
+# In SQL
+> SELECT DEST_COUNTRY_NAME, ORIGIN_COUNTRY_NAME FROM dfTable LIMIT 2
 
-        (((col("someCol") + 5) * 200) - 6) < col("otherCol")
++-----------------+-------------------+
+|DEST_COUNTRY_NAME|ORIGIN_COUNTRY_NAME|
++-----------------+-------------------+
+|    United States|            Romania|
+|    United States|            Croatia|
++-----------------+-------------------+
 
 
-                                                       <
-                                                      / \
-                                                     /   \
-                                                    -  OtherCol
-                                                    /\
-                                                   /  \
-                                                  *    6
-                                                  /\
-                                                 /  \
-                                                +   200
-                                                /\
-                                               /  \
-                                          SomeCol  5
 
+# There are several interchangable ways to refer to columns
+> from pyspark.sql.functions import expr, col, column
 
-        This might look familiar because it’s a directed acyclic graph. This graph is represented
-          equivalently by the following code:
+> df.select(
+         expr("DEST_COUNTRY_NAME"),
+         col("DEST_COUNTRY_NAME"),
+         column("DEST_COUNTRY_NAME")).show(2)
 
 
-          >>> from pyspark.sql.functions import expr
-          >>> expr("(((someCol + 5) * 200) - 6) < otherCol")
 
+# Note that you cannot use columns and strings in the same expression, 
+#   this is a common mistake that will generate a compiler error
+> df.select(col("DEST_COUNTRY_NAME"), "DEST_COUNTRY_NAME")
 
 
-    - This is an extremely important point to reinforce. Notice how the previous expression is 
-        actually valid SQL code, as well, just like you might put in a SELECT statement? That’s 
-        because this SQL expression and the previous DataFrame code compile to the same underlying 
-        logical tree prior to execution. This means that you can write your expressions as DataFrame 
-        code or as SQL expressions and get the exact same performance characteristics.
 
+# Column names can be aliased in an expression
+> df.select(expr("DEST_COUNTRY_NAME AS destination")).show(2)
 
+# In SQL
+> SELECT DEST_COUNTRY_NAME as destination FROM dfTable LIMIT 2
 
-- Accessing a DataFrame’s columns
 
-    - Sometimes, you’ll need to see a DataFrame’s columns, which you can do by using something like
-        printSchema; however, if you want to programmatically access columns, you can use the 
-        columns property to see all columns on a DataFrame:
 
-        >>> spark.read.format("json").load("/data/flight-data/json/2015-summary.json").columns
+# Your expression can be further manipulated as another expression
+> df.select(expr("DEST_COUNTRY_NAME as destination").
+     alias("DEST_COUNTRY_NAME")).
+     show(2)
+
+
+
+# Because 'select', followed by a series of 'expr', is so common, Spark has the
+#   'selectExpr' shorthand for it
+> df.selectExpr("DEST_COUNTRY_NAME as newColumnName", "DEST_COUNTRY_NAME").show(2)
+
+
+
+# Adds a new column that specifies whether the origin and destination columns are
+#   the same
+> df.selectExpr(
+                "*", # all original columns
+                "(DEST_COUNTRY_NAME = ORIGIN_COUNTRY_NAME) as withinCountry").
+                show(2)
+
+# In SQL
+> SELECT *, (DEST_COUNTRY_NAME = ORIGIN_COUNTRY_NAME) as withinCountry
+  FROM dfTable
+  LIMIT 2
+
++-----------------+-------------------+-----+-------------+
+|DEST_COUNTRY_NAME|ORIGIN_COUNTRY_NAME|count|withinCountry|
++-----------------+-------------------+-----+-------------+
+|    United States|            Romania|   15|        false|
+|    United States|            Croatia|    1|        false|
++-----------------+-------------------+-----+-------------+
+
+
+
+# Specify an aggregation over the entire DataFrame
+> df.selectExpr("avg(count)", "count(distinct(DEST_COUNTRY_NAME))").show(2)
+
+# In SQL
+> df.selectExpr("avg(count)", "count(distinct(DEST_COUNTRY_NAME))").show(2)
+
++-----------+---------------------------------+
+| avg(count)|count(DISTINCT DEST_COUNTRY_NAME)|
++-----------+---------------------------------+
+|1770.765625|                              132|
++-----------+---------------------------------+
+
+
+
+# Convert a Python literal into a Spark type
+> from pyspark.sql.functions import lit
+> df.select(expr("*"), lit(1).alias("One")).show(2)
+
+# In SQL
+> SELECT *, 1 as One FROM dfTable LIMIT 2
+
++-----------------+-------------------+-----+---+
+|DEST_COUNTRY_NAME|ORIGIN_COUNTRY_NAME|count|One|
++-----------------+-------------------+-----+---+
+|    United States|            Romania|   15|  1|
+|    United States|            Croatia|    1|  1|
++-----------------+-------------------+-----+---+
+
+
+
+# Add a column with 'withColumn' instead
+> df.withColumn("numberOne", lit(1)).show(2)
+
+# In SQL
+> SELECT *, 1 as numberOne FROM dfTable LIMIT 2
+
++-----------------+-------------------+-----+---------+
+|DEST_COUNTRY_NAME|ORIGIN_COUNTRY_NAME|count|numberOne|
++-----------------+-------------------+-----+---------+
+|    United States|            Romania|   15|        1|
+|    United States|            Croatia|    1|        1|
++-----------------+-------------------+-----+---------+
+
+
+
+# Add a column with a more interesting expression
+> df.withColumn("withinCountry", expr("ORIGIN_COUNTRY_NAME == DEST_COUNTRY_NAME")).
+     show(2)
+
+
+
+# We can also use the 'withColumnRenamed' method to rename a column
+> df.withColumnRenamed("DEST_COUNTRY_NAME", "dest").columns
