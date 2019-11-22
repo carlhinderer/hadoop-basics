@@ -1,0 +1,111 @@
+---------------------------------------------------------------
+CHAPTER 1 - BIG DATA TECHNOLOGY PRIMER
+---------------------------------------------------------------
+
+- Google creates big data with MapReduce and GFS projects.
+    1. Reliable storage (Google File System)
+    2. Processing (MapReduce, Pregel)
+    3. Low-Latency Random Access Queries (Bigtable)
+
+  All scaled over thousands of potentially unreliable commodity servers.
+
+
+
+- Traditional Approach:
+    1. Invest in a few extremely powerful servers
+    2. Slurp the data in from the storage layer (SAN or NAS)
+    3. Crunch through computation
+    4. Write the results back to storage
+
+  This worked fine until the data increased to internet-scale.  Then, it proved both
+    expensive and impractical.
+
+
+
+- Hadoop project created (2005)
+
+    - Key innovation was to distribute the datasets across many machines and to split
+        up any computations on the data into many independent, 'shared nothing'
+        chunks, each of which could run on the same machine storing the data.
+
+      This creates a horizontally scalable architecture.
+
+    - Hadoop is an open-source implementation of these ideas.
+
+    - Large-scale, distributed, shared nothing software requires a new approach to 
+        operations, security, and governance.
+
+
+
+- Misconceptions
+    1. Data in Hadoop is schemaless
+    2. One copy of the data
+    3. One huge cluster
+
+
+- General Trends
+    1. Horizontal Scaling
+    2. Adoption of Open Source
+    3. Embracing Cloud Compute
+    4. Decoupled Compute and Storage
+
+
+
+- Cluster Architecture
+
+   - Usually we divide a cluster up into 2 classes of machines: 'master' and 'worker'.
+       Worker machines are where real work happens.  Master machines are responsible
+       for coordination, maintaining metadata about the data and services running on
+       the worker machines, and ensuring the services keep running in the event of
+       worker failures.  
+
+    - Typically, there are 2-3 master machines and a much larger number of workers.
+        A cluster is scaled up by adding more workers, and eventually when the cluster
+        gets big enough, more masters.  
+
+    - Often, we want to allow access to the cluster by users and other applications, so
+        we provide some machines to act as 'gateway' or 'edge servers'.  These servers
+        often do not run any services at all but have the correct client configuration
+        to access cluster services.
+
+
+
+- Enabling Technologies for the Rest of the Stack
+    1. HDFS
+    2. YARN
+    3. Apache Zookeeper
+    4. Apache Hive Metastore
+
+
+- HDFS = fault tolerant, distributed file system optimized to store very large amounts of
+           immutable data being accessed typically in long sequential scans
+
+
+- Computational Frameworks
+    1. MapReduce
+    2. Spark
+
+
+- Analytical SQL Engines
+    1. Hive
+    2. Impala
+    Also consider... Presto, Apache Drill, Apache Phoenix
+
+
+- Storage Engines
+    1. HBase
+    Also consider... Apache Cassandra, Apache Accumulo
+    2. Kudu
+    3. Solr
+    Also consider... Elasticsearch
+    4. Kafka
+
+
+- Ingestion
+    1. Apache Nifi
+    2. StreamSets Data Collector
+
+
+- Orchestration
+    1. Oozie
+    Also consider... Apache Airflow, Spotify Luigi
