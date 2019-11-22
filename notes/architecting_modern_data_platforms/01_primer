@@ -77,8 +77,121 @@ CHAPTER 1 - BIG DATA TECHNOLOGY PRIMER
     4. Apache Hive Metastore
 
 
-- HDFS = fault tolerant, distributed file system optimized to store very large amounts of
-           immutable data being accessed typically in long sequential scans
+- HDFS
+
+    - Fault tolerant, distributed file system optimized to store very large amounts of
+        immutable data being accessed typically in long sequential scans.  HDFS is the 
+        critical supporting technology for many other components in the stack.
+
+    - When storing data, HDFS breaks up a file into blocks (typically 128 MB), and stores
+        a replica of each block on multiple servers for resilience and data parallelism.
+        Each worker node runs a daemon called a 'DataNode' which accepts new blocks and
+        persists them to local disk.
+
+      The 'DataNode' is also responsible for serving up data to clients.
+
+    - The 'DataNode' is only aware of blocks and their ids.  It does not have knowledge
+        about the file to which a particular replica belongs.  This information is curated
+        by the coordinating process, the 'NameNode', which runs on master servers and is
+        responsible for maintaining a mapping of files to blocks and metadata about the
+        files themselves.
+
+    - Clients wishing to store blocks must first communicate with the NameNode to be 
+        given a list of DataNodes on which to write each block.  The client writes to the
+        first DataNode, which in turn streams to the next DataNode, and so on in a 
+        pipeline.  The NameNode can also take rack locality into account.
+
+    - When reading data, the client asks the NameNode for a list of DataNodes containing
+        the blocks for the files it needs.  The client then reads the data directly from the
+        DataNodes, preferring locals that are local or close in network terms.
+
+    - HDFS does not allow in-place updates to the files it stores.  This immutability allows
+        it to achieve the required horizontal scalability and resilience in a relatively
+        simple way.
+
+    - HDFS is fault-tolerant because the failure of a single disk, data node, or even rack
+        doesn't imperil the safety of the data.  In these situations, the NameNode simply
+        directs one of the DataNodes that is maintaining a replica to copy the block to
+        another DataNode until the 
+
+
+
+- YARN
+
+    - YARN is a centralized cluster manager, aware of all available compute resources and
+        the current competing workload demands.
+
+
+    - YARN runs a daemon on each node, called a 'NodeManager', which reports to a master
+        process called the 'ResourceManager'.  
+
+      Each NodeManager tells the ResourceManager how much compute resource and how much 
+        memory is available on its node.  Resources are parceled out to applications running
+        on the cluster in the form of 'containers'.  The NodeManagers are responsible for 
+        starting and monitoring containers on their local nodes and killing them if they
+        exceed their resource allocations.
+
+
+    - An application that needs to run computations on the cluster must first ask the 
+        ResourceManager for a single container on which to run its own coordinating process,
+        called the 'ApplicationMaster'.  The AM actually runs on one of the worker machines.
+
+      AMs of different applications will run on different worker machines, so the failure of
+        a single machine will affect only a subset of applications running on the cluster.
+
+      Once the AM is running, it requests additional containers from the ResourceManager
+        to run its actual computation.
+
+
+    - The ResourceManager runs a special thread which is responsible for scheduling applications
+        and allocating containers equitably between applications.
+
+
+    - Note that YARN itself does not perform any computation.  It is a framework for launching
+        such applications distributed across a cluster.  YARN provides a suite of APIs for
+        creating these applications.
+
+
+
+- ZooKeeper
+
+    - Consensus is an important problem in computer science.  When an application is distributed
+        across many nodes, a key concern is getting these disparate componenets to agree on the
+        values of some shared parameters.  For example, frameworks with multiple masters must know
+        which one whould be in 'active master' and which should be in 'standby'.  
+
+
+    - Apache ZooKeeper is the resilient, distributed configuration service for the Hadoop ecosystem.
+        Within ZooKeeper, configuration data is stored and accessed in a filesystem-like tree of
+        nodes called 'znodes'.  Each 'znode' can hold data and be the parent of 0 or more child
+        nodes.
+
+      Clients open a connection to a single ZooKeeper server to create, read, update, and delete
+        the znodes.
+
+
+    - For resilience, ZooKeeper instances should be deployed on different servers as an ensemble.
+        Since ZooKeeper operates on majority consensus, an odd number of servers is required to
+        for a quorum.
+
+      Each server is identical in functionality, but one of the ensemble is elected the 'leader' 
+        node.  All other servers are designated 'followers'.  ZooKeeper guarantees that data 
+        updates are applied by a majority of ZooKeeper servers.  As long as a majority of
+        servers are up and running, the ensemble is operational.
+
+
+    - Clients can open connections to any of the servers to perform reads and writes, but writes
+        are forwarded from follower servers to the leader to ensure consistency.  ZooKeeper
+        ensures that all state is consistent by guaranteeing that updates are always applied
+        in the same order.
+
+
+    - Many frameworks rely on ZooKeeper:
+        1. coordinating high availability in HDFS and YARN
+        2. metadata and coordination in HBase, Solr, and Kafka
+        3. table and partition locking and high availability in Hive 
+
+        
 
 
 - Computational Frameworks
