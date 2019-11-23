@@ -191,18 +191,152 @@ CHAPTER 1 - BIG DATA TECHNOLOGY PRIMER
         2. metadata and coordination in HBase, Solr, and Kafka
         3. table and partition locking and high availability in Hive 
 
-        
+
+
+- Hive Metastore
+
+    - The Hive Metastore is a key component for other technologies in the stack.  It curates
+        information about the structured datasets (as opposed to binary data) that reside in
+        Hadoop and organizes them into a logical hierarchy of databases, tables, and views.
+
+    - Hive tables have defined schemas which are specified during table creation.  These
+        tables support most of the common data types from the RDBMS world.  The underlying
+        storage is expected to match this schema, but it is only checked at runtime (schema
+        on read).
+
+    - Hive tables can be defined for data in other storage engines, including HBase and Kudu,
+        but HDFS is by far the most common.
+
+    - Hive supports partitioning via subdirectories within the table directory.  Within a 
+        single partition, all files should have the same format.  
+
+    - The metastore allows tables to be defined as either 'managed' or 'external'.  For
+        managed tables, Hive actively controls the data in the storage engine.  For instance,
+        if a table is created, Hive will create the directories in HDFS.  If a table is
+        dropped, Hive deletes the data from the storage engine.
+
+      For external tables, Hive makes no modifications to the underlying engine.  It merely
+        maintains the metadata for the table in its database.
+
 
 
 - Computational Frameworks
     1. MapReduce
     2. Spark
+    Also consider... Apache Flink
+
+
+- MapReduce
+
+    - MapReduce is the original application for which Hadoop was built and is a Java-based
+        implementation of Google's MapReduce paper.
+
+    - Many higher-level frameworks compile their inputs into MapReduce jobs for execution.
+        These include Hive, Sqoop, Oozie, and Pig.
+
+
+    - Map = apply a transform function to every element in a collection
+
+      Reduce = apply an aggregation function to each element of a list, combining them into
+                 fewer values
+
+
+    - MapReduce divides a computation into 3 sequential stages:
+        1. Map
+        2. Shuffle
+        3. Reduce
+
+      Sequences of these 3 simple linear stages can be composed and combined into essentially
+        any computation of arbitrary complexity.  Examples include joins, aggregations, and
+        advanced transformations.  Sometimes, with simple transforms, the reduce phase is not
+        required at all.
+
+
+    - Usually, the outputs from a MapReduce job is stored back into HDFS, where they may 
+        form the inputs to other jobs.
+
+
+    - MapReduce is relatively simple to use, but users must still code and compile 'map()'
+        and 'reduce()' functions in Java.  Also, it does a lot of disk-based I/O between
+        stages.  For these reasons, a number of successors have been developed.
+
+      However, the conceptual model - data should be split up into multiple independent
+        tasks running on different machines (maps), the results of which are then shuffled
+        to and grouped and collated together on a different set of machines (reduce) are
+        fundamental to all distributed data processing engines.  Spark, Flink, and Impala
+        are all essential different implementations of this concept.
+
+
+
+- Spark
+
+    - Spark is a distributed computation framework with an emphasis on efficiency
+        and usability.  It supports both batch and streaming computations.  
+
+
+    - Instead of expressing map() and reduce() functions directly, Spark exposes a
+        rich API of common operations, such as filtering, joining, grouping, and
+        aggregations directly on datasets.  
+
+      As well as using API methods, users can submit operations directly using a
+        SQL-style dialect.  
+
+
+    - A key feature of operations on datasets is that the processing graphs are run 
+        through a standard query optimizer before execution, very similar to those
+        found in relational DBs.  This optimizer can rearrange, combine, and prune the
+        processing graph to obtain the most efficient execution pipeline.  This
+        optimization helps avoid much of the intermediate I/O from MapReduce.
+
+
+    - One of the principal design goals for Spark was to take full advantage of memory
+        on worker nodes.  The ability to store and retrieve from main memory makes certain
+        workloads drastically more efficient.
+
+      Spark allows datasets to be cached in memory on the executors.  If the data does not
+        fit entirely into memory, the partitions that cannot be cached are spilled to
+        disk.
+
+
+    - Spark implements stream processing as a series of periodic microbatches of datasets.
+        This approach requires only small differences in the code to handle batch and
+        streaming data.
+
+      One drawback of this approach is that it takes at least the interval between batches
+        for an event to be processed, so it's not suitable for use cases requiring
+        millisecond latencies.
+
+      However, this does allow a much higher data throughput than when processing events
+        one by one.
+
+
+    - Spark has become the de facto choice when creating new batch processing, machine learning,
+        and streaming use cases.  
+
 
 
 - Analytical SQL Engines
     1. Hive
     2. Impala
     Also consider... Presto, Apache Drill, Apache Phoenix
+
+
+    - To write Spark or MapReduce jobs, you still need to code in Java/Scala/Python and run
+        programs from the command line.  Many analysts can write SQL queries, but wouldn't be
+        comfortable with full programming.  For this reason, a lot of effort has been made to
+        develop SQL-like interfaces to structured data stored in Hadoop.
+
+
+
+- Hive
+
+    - Hive is the original data warehousing technology for Hadoop.  It was developed at
+        Facebook and was the first to offer a SQL-like language, HiveQL, that allowed analysts
+        to query structured data in HDFS without compiling and deploying code.
+
+    - 
+
+
 
 
 - Storage Engines
