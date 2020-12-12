@@ -1,0 +1,153 @@
+-----------------------------------------------------------------------
+|  CHAPTER 1 - HADOOP                                                 |
+-----------------------------------------------------------------------
+
+- Data
+
+    - More data usually beats better algorithms.
+
+    - The good news is that big data is here.  The bad news is that we are struggling to
+        store and analyze it.
+
+
+
+- Data Storage and Analysis
+
+    - Storage capacities of hard drives have increased massively, but access speeds have
+        not grown as fast.  So, to make reading and writing faster, we spread the data out
+        over lots of disks.
+
+
+    - There are 2 problems with this approach, though:
+
+        1. The larger the number of drives, the higher chance of hardware failure.  So, we
+             have to replicate the data on multiple disks.
+
+        2. Most analysis tasks need to be able to combine data with other disks in some
+             way.  Getting this right is notoriously difficult.  So, MapReduce, like HDFS,
+             has built-in reliability.
+
+
+    - Hadoop is a reliable, scalable platform for storage and analysis.  Because it is open
+        source and runs on commodity hardware, it is affordable.
+
+
+
+- Querying All Your Data
+
+    - MapReduce is a batch query processor.  It gives you the ability to run an ad hoc query
+        against your whole dataset, which can be transformative.
+
+
+    - This allows you to innovate with data.  For instance, Rackspace ran a query over hundreds
+        of GBs of email logs to find out where there users were located.  This helped them
+        decide which datacenters to add email servers in.
+
+
+
+- Beyond Batch
+
+    - MapReduce is fundamentally a batch processing system, and is not suitable for
+        interactive analysis.  Hadoop has been adding components that make online
+        processing available, though.
+
+
+    - HBase, a key-value store that uses HDFS for its underlying storage, was the first
+        component to provide online access.  It provides both online read/write access of
+        individual rows and batch operations in bulk.
+
+
+    - YARN allows any distributed program (not just MapReduce) to run on data in a Hadoop
+        cluster.
+
+        1. Interactive SQL = Impala and Hive
+
+        2. Iterative Processing = Spark
+
+        3. Stream Processing = Storm, Spark Streaming, Samza
+
+        4. Search = Solr
+
+
+
+- Hadoop vs RDBMS's
+
+    - Disk data transfer rates are improving faster than seeks are.  If a data access pattern
+        is dominated by seeks, reading and writing large portions of the dataset will take
+        longer.  Something like MapReduce will perform much better in these cases.
+
+
+    - However, for reading and writing small amounts of data, traditional B-Tree indexes work
+        well.  RDBMS's are good for point queries and updates.
+
+
+    - MapReduce suits applications where data is written once and read many times.  RDBMS's
+        are good for datasets that are continuously updated.
+
+
+    - RDBMS's only operate on structured data.  Hadoop can handle semi-structured or 
+        unstructured data as well.  RDBMS's are schema-on-write, whereas Hadoop is 
+        schema-on-read.
+
+
+    - RDBMS's are normalized to retain data integrity and remove redundancy.  Normalization
+        poses a problem for Hadoop, since it makes reading a record a nonlocal operation.  One
+        of the central assumptions of Hadoop is high-speed streaming reads and writes.
+
+
+    - Hadoop processing scales linearly with the size of the data.  If you double the size of
+        the cluster, the processing will be done twice as fast.
+
+
+
+- Hadoop vs Grid Computing
+
+    - HPC and Grid Computing have been doing large-scale data processing for years.  Typically,
+        they work as a cluster of machines that share a SAN.  This works well for CPU-instensive
+        tasks.
+
+
+    - Hadoop uses 'data locality', co-locating the data and processing, to speed up data-intensive
+        tasks.  It recognizes that network bandwidth is the most precious commodity in a data
+        center.
+
+
+    - MPI gives a lot of control to programmers, but that means applications are tricky to code.
+        Coordinating these processes in a large-scale distributed system is a challenge.
+
+
+    - MapReduce uses a shared-nothing architecture to spare programmers from having to thing 
+        about failure conditions.
+
+
+
+- History of Hadoop
+
+    - Started as Apache Nutch by Doug Cutting as part of the Lucene project in 2002.  The
+        original goal was to build a web search engine from scratch.
+
+
+    - Google's GFS (2003) and MapReduce (2004) papers described how to solve long-standing
+        distributed systems problems.  Nutch implemented similar functionality in 2005.
+
+
+    - The NDFS and MapReduce parts of Nutch were moved into a separate project, Hadoop, in
+        2006.  This happened, because it came clear there were other applications besides
+        search that could use the same approach.
+
+
+    - In 2008, Yahoo moved their search to a 10,000 node Hadoop cluster.  Also that year, 
+        Hadoop became its own top-level project at Apache.
+
+
+    - In 2011, Hadoop 1.0 was released.  It was mainly used for MapReduce applications.
+
+
+    - In 2013, Hadoop 2.0 was released.  It added YARN, which enabled different kinds of
+        applications to be run.
+
+
+    - In 2017, Hadoop 3.0 was released.  It added the ability to have multiple NameNodes,
+        enabling high availability.  It includes Docker-like containers, uses erasure
+        coding to decrease storage overhead, and enables the use of GPU hardware within
+        the cluster.
