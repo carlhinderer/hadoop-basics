@@ -1,0 +1,70 @@
+-----------------------------------------------------------------------
+|  UBUNTU 18.04 - STANDALONE HADOOP INSTALLATION                      |
+-----------------------------------------------------------------------
+
+- Full Instructions
+
+    https://www.digitalocean.com/community/tutorials/
+        how-to-install-hadoop-in-stand-alone-mode-on-ubuntu-18-04
+
+
+
+- Install Hadoop
+
+    # Download Hadoop
+    $ wget https://mirrors.sonic.net/apache/hadoop/common/hadoop-3.3.0/hadoop-3.3.0.tar.gz
+    
+    # Unzip and move it
+    $ tar -xzvf hadoop-3.3.0-src.tar.gz
+    $ sudo mv hadoop-3.3.0-src /usr/local/hadoop
+    
+
+
+- Add Java to the Hadoop environment
+
+    # Find the default Java path
+    $ readlink -f /usr/bin/java | sed "s:bin/java::"
+    /usr/lib/jvm/java-8-openjdk-amd64/jre/
+    
+    # Add the default Java path to the Hadoop environment
+    $ sudo vim /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+    
+    # Add this line
+    export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre/
+
+
+
+- Run Hadoop to check it is installed correctly
+
+    # Now we should be able to run Hadoop
+    $ /usr/local/hadoop/bin/hadoop
+
+
+
+- Config Files
+
+    # Create a new folder in our home directory and copy Hadoop config files into it
+    #   We'll use these files as our data
+
+    $ mkdir ~/input
+    $ cp /usr/local/hadoop/etc/hadoop/*.xml ~/input
+
+
+
+- Run a MapReduce Example Program
+
+    # Run example
+    #   JAR                /usr/local/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.0.3.jar
+    #   grep               Program
+    #   ~/input            Input Directory
+    #   ~/grep_example     Output Directory
+    #                      Finding the string 'allowed' within or at the end of a sentence
+
+    $ /usr/local/hadoop/bin/hadoop jar /usr/local/hadoop/share/hadoop/mapreduce/
+        hadoop-mapreduce-examples-3.3.0.jar grep ~/input ~/grep_example 'allowed[.]*'
+
+
+    # Look at results
+    $ cat ~/grep_example/*
+    22  allowed.
+    1   allowed
