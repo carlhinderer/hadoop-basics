@@ -1,0 +1,108 @@
+-----------------------------------------------------------------------
+|  CHAPTER 2 - MAPREDUCE                                              |
+-----------------------------------------------------------------------
+
+- NCDC Weather Data
+
+    - The data files we have are ASCII, with each line of the file representing a record
+        from a weather station. 
+
+
+    - Datafiles are organized by data and weather station.  There is a directory for each
+        year from 1901 to 2001, each containing a gzipped file for each weather station
+        with its reading for the year.
+
+
+    - There are tens of thousands of weather stations, so the data was preprocessed so
+        that each year's readings were concatenated into a single file.
+
+        1901.gz
+        1902.gz
+        ...
+
+
+
+- Analyzing the Data with Unix Tools
+
+    - We created a simple Unix script to find the maximum recorded temperature for each year.
+        An awk script extracts 2 fields from each record: the air temperature and quality
+        code.
+
+
+    - Here we run it:
+
+        $ ./max-temperature.sh
+        1901     317
+        1902     244
+
+
+    - The temperatures are scaled by a factor of 10, so the high temperature in 1901 was 
+        31.7 degrees Celsius.
+
+
+    - This approach works well enough, but there are 3 problems:
+
+        1. We could parallelize the processing, but dividing the work into equal-sized pieces
+             isn't always easy or obvious.
+
+        2. Combining the results may require further processing.
+
+        3. You are limited to the processing capacity of a single machine.
+
+
+
+- Map and Reduce
+
+    - MapReduce breaks the processing into 2 phases: map and reduce.  Each phase has a 
+        key-value pair as it input and output.  The programmer also specifies a function
+        for each phase.
+
+
+    - In our map function, we take each of the lines in the file and extract out just the
+        year and temperature.
+
+        (1950, 0)
+        (1950, 22)
+        (1950, −11)
+        (1949, 111)
+        (1949, 78)
+
+
+    - The output of the map function is processed by the MapReduce framework before being
+        sent to the reduce function.  This processing sorts and groups the key-value pairs
+        by key.  This is known as the 'shuffle'.
+
+        (1949, [111, 78])
+        (1950, [0, 22, −11])
+
+
+    - Finally, the reduce function just needs to iterate through the list and pick the 
+        maximum reading:
+
+        (1949, 111)
+        (1950, 22)
+
+
+
+- Java MapReduce
+
+
+- Test Run
+
+
+- Scaling Out - Data Flow
+
+
+- Combiner Functions
+
+
+- Specifying a Combiner Function
+
+
+- Hadoop Streaming
+
+
+- Ruby Example
+
+
+- Python Example
