@@ -86,6 +86,144 @@
 
 - Java MapReduce
 
+    - We need 3 things:
+
+        1. A 'map' function
+        2. A 'reduce' function
+        3. Some code to run the job
+
+
+
+- Java Mapper
+
+    - Here is the mapper function:
+
+        ...
+        import org.apache.hadoop.io.IntWritable;
+        import org.apache.hadoop.io.LongWritable;
+        import org.apache.hadoop.io.Text;
+        import org.apache.hadoop.mapreduce.Mapper;
+
+        public class MaxTemperatureMapper 
+            extends Mapper<LongWritable, Text, Text, IntWritable> {
+        
+            private static final int MISSING = 9999;
+        
+            @Override
+            public void map(LongWritable key, Text value, Context context) 
+                throws IOException, InterruptedException {
+                ...
+                if (airTemperature != MISSING && quality.matches("[01459]")) {
+                    context.write(new Text(year),new IntWritable(airTemperature));
+                }
+            }
+        }
+
+
+    - The 'Mapper' generic class has 4 type parameters:
+
+        1. The input key       (LongWritable - A long integer offset)
+        2. The input value     (Text - A line of text)
+        3. The output key      (Text - A year)
+        4. The output value    (IntWritable - The air temperature)
+
+
+    - Rather than using built-in Java types, Hadoop provides its own set of basic types
+        which are optimized for network serialization.  These types are found in the
+        'org.apache.hadoop.io' package.
+
+      Here, we use 'LongWritable' (like a Java Long), 'Text' (like a Java String), and
+        'IntWritable' (like a Java Integer).
+
+
+    - The 'map()' method is passed a key and value.  We convert the text value into a
+        Java String, and then we can extract the columns we need from it.  
+
+
+    - It is also passed an instance of 'Context', which we write the output to.  We write 
+        the year as Text (since we're just using it as a key) and the temperature as an
+        IntWritable.  We write an output record only if the temperature is present and
+        the quality code indicates the reading is OK.
+
+
+
+- Java Reducer
+
+    - Here is the reducer function:
+
+        import org.apache.hadoop.io.IntWritable;
+        import org.apache.hadoop.io.Text;
+        import org.apache.hadoop.mapreduce.Reducer;
+        
+        public class MaxTemperatureReducer
+            extends Reducer<Text, IntWritable, Text, IntWritable> {
+        
+            @Override
+            public void reduce(Text key, Iterable<IntWritable> values, Context context)
+                throws IOException, InterruptedException {
+                ...
+                context.write(key, new IntWritable(maxValue));
+            }
+        }
+
+
+
+- Java Job Runner
+
+    - Finally, we have the code that runs the MapReduce job.
+
+        import org.apache.hadoop.fs.Path;
+        import org.apache.hadoop.io.IntWritable;
+        import org.apache.hadoop.io.Text;
+        import org.apache.hadoop.mapreduce.Job;
+        import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+        import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+        
+        public class MaxTemperature { 
+        
+            public static void main(String[]args) throws Exception {
+                if (args.length!=2) {
+                    System.err.println("Usage: MaxTemperature <input path> <output path>");
+                    System.exit(-1);
+                }
+        
+                Job job = new Job();
+                job.setJarByClass(MaxTemperature.class);
+                job.setJobName("Max temperature");
+        
+                FileInputFormat.addInputPath(job, newPath(args[0]));
+                FileOutputFormat.setOutputPath(job,newPath(args[1]));
+        
+                job.setMapperClass(MaxTemperatureMapper.class);
+                job.setReducerClass(MaxTemperatureReducer.class);
+        
+                job.setOutputKeyClass(Text.class);
+                job.setOutputValueClass(IntWritable.class);
+        
+                System.exit(job.waitForCompletion(true)?0:1);
+            }
+        }
+
+
+    - The 'Job' object forms the specification of the job and gives you control over
+        how the job is run.  When we run this job on a Hadoop cluster, we will package
+        the code into a JAR file, which Hadoop will distribute around the cluster.
+
+
+    - Rather than explicitly specifying the name of the JAR file, we can pass a class in
+        the 'setJarByClass()' method, which Hadoop will use to locate the relevant JAR by
+        looking for the JAR file containing this class.
+
+
+    - The input and output paths can be a single file, a directory, or a file pattern.
+        The 'addInputPath()' method can be called more than once to use input from multiple
+        paths.
+
+
+    - The 'waitForCompletion()' method returns a boolean indicating success (true) or
+        failure (false).
+
+
 
 - Test Run
 
