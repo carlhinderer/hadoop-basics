@@ -227,6 +227,38 @@
 
 - Test Run
 
+    - Now, we can test the job locally.  First, we need to set the HADOOP_CLASSPATH
+        environment variable.
+
+        $ export HADOOP_CLASSPATH=$(/usr/local/hadoop/bin/hadoop classpath)
+
+
+    - Next, we compile our code against that classpath.
+
+        $ cd code/ch01/java
+        $ javac -classpath ${HADOOP_CLASSPATH} *
+
+
+    - And we build our JAR.
+
+        $ jar -cvf MaxTemperature.jar .
+
+
+    - Now, we can run our job.
+
+        $ /usr/local/hadoop/bin/hadoop jar MaxTemperature.jar MaxTemperature ../../../data/weather output
+
+
+    - And we can check the results.
+
+        $ ls output
+        part-r-00000 _SUCCESS
+
+        $ cat output/part-r-00000
+        1901    317
+        1902    244
+
+
 
 - Scaling Out - Data Flow
 
