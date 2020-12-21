@@ -387,8 +387,70 @@
 
 - Hadoop Streaming
 
+    - Hadoop provides an API that lets you write map and reduce functions in other languages
+        besides Java.  'Hadoop Streaming' uses Unix standard streams as the interface
+        between Hadoop and your program, so you can use any language that can read from stdin
+        and write to stdout.
+
+
 
 - Ruby Example
+
+    - Here is a map function in Ruby:
+
+        #!/usr/bin/env ruby
+
+        STDIN.each_line do |line|
+          val = line
+          year, temp, q =val[15,4], val[87,5], val[92,1]
+          puts "#{year}\t#{temp}" if (temp != "+9999" && q =~ /[01459]/)
+        end
+
+
+    - Here is a reduce function in Ruby:
+
+        #!/usr/bin/env ruby
+
+        last_key, max_val = nil, -1000000
+        STDIN.each_line do |line|
+          key, val = line.split("\t")
+          if last_key && last_key != key
+            puts "#{last_key}\t#{max_val}"
+            last_key, max_val = key, val.to_i
+          else
+            last_key, max_val = key, [max_val, val.to_i].max
+          end
+        end
+        puts "#{last_key}\t#{max_val}" if last_key
+
+
+    - Now, we can simulate the whole MapReduce pipeline with a Unix pipeline:
+
+        $ cat input/ncdc/sample.txt | \
+          max_temperature_map.rb | \
+          sort | \
+          max_temperature_reduce.rb
+
+
+    - And we can run it using Hadoop:
+
+        $ hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-*.jar \  
+          -input input/ncdc/sample.txt \  
+          -output output \  
+          -mapper ruby/max_temperature_map.rb \  
+          -reducer ruby/max_temperature_reduce.rb
+
+
+    - If we also want to use a combiner:
+
+        $ hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-*.jar \  
+          -files ruby/max_temperature_map.rb, ruby/max_temperature_reduce.rb \  
+          -input input/ncdc/sample.txt \  
+          -output output \  
+          -mapper ruby/max_temperature_map.rb \  
+          -combiner ruby/max_temperature_reduce.rb \  
+          -reducer ruby/max_temperature_reduce.rb
+
 
 
 - Python Example

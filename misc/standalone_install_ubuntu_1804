@@ -54,7 +54,7 @@
 - Run a MapReduce Example Program
 
     # Run example
-    #   JAR                /usr/local/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.0.3.jar
+    #   JAR                /usr/local/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.3.0.jar
     #   grep               Program
     #   ~/input            Input Directory
     #   ~/grep_example     Output Directory
