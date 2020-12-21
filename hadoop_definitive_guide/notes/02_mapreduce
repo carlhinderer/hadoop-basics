@@ -262,6 +262,59 @@
 
 - Scaling Out - Data Flow
 
+    - A MapReduce 'job' is a unit of work to be performed.  It consists of the input data,
+        a MapReduce program, and configuration.
+
+
+    - Hadoop runs the job by dividing it into 'tasks'.  There are 2 types of tasks: 'map tasks'
+        and 'reduce tasks'.  The tasks are scheduled using YARN and run on nodes in the cluster.
+        If a task fails, it will be automatically scheduled to run on a different node.
+
+
+    - Hadoop divides tasks into fixed-size pieces called 'input splits' and creates one map task
+        for each split.  If splits are too big, the processing won't be balanced.  If the splits
+        are too small, the management overhead will decrease efficiency.  The default split
+        is 128 MB, the size of an HDFS block.
+
+
+    - Hadoop will try to run the map task:
+
+        1. On the machine where the data resides (this is most common and desired)
+        2. On another node on the same server rack
+        3. On another node on another server rack
+
+
+    - Map tasks write their output to the local disk, not to HDFS.  This is because it is
+        intermediate output - it is used by reduce tasks, and once used it can be thrown
+        away.  So, it's not worth storing on HDFS in a replicated manner.
+
+
+    - Reduce tasks don't have the advantage of data locality.  The input to a single reduce
+        task is the output from all mappers.  If our example, we have a single reduce task
+        that is fed from all the map tasks.  The number of reduce tasks is not governed by
+        the size of the input, but instead is specified independently.
+
+      Therefore, the sorted map outputs have to be transferred across the network to the node 
+        where the reduce task is running, where they are merged and passed to the user-defined
+        reduce function.
+
+
+    - The output of the reduce tasks is typically stored in HDFS for reliability.
+
+
+    - When there are multiple reducers, the map tasks partition their output, each creating
+        one partition for each reduce task.  The partitioning can be controlled by a user-defined
+        partitioning function, but the default key-hashing function usually works well.
+
+
+    - The data flow between map and reduce tasks is known as the 'shuffle'.  It can have a big
+        effect on execution time.
+
+
+    - Finally, it is possible to have no reduce task in situations where the processing can be
+        carried out entirely in parallel.
+
+
 
 - Combiner Functions
 
