@@ -318,8 +318,71 @@
 
 - Combiner Functions
 
+    - It pays to always look for ways to minimize traffic between map and reduce tasks.  One thing
+        we can do is specify a 'combiner' function to be run on the map output, which forms the
+        input to the reducer function.
+
+
+    - Because the combiner function is an optimization, There is no guarantee on whether it will
+        be called.  So calling it 0, 1, or many times should still produce the same output to the
+        reduce function.
+
+
+    - For example:
+
+        Imagine our weather data for 1950 was processed by 2 maps.  
+
+          # First map output
+          (1950, 0)
+          (1950, 20)
+          (1950, 10)
+
+          # Second map output
+          (1950, 25)
+          (1950, 15)
+
+        Our reduce function would be passed the input:
+
+          # Input to reduce function
+          (1950, [0, 20, 10, 25, 15])
+
+          # Output of reduce function
+          (1950, 25)
+
+
+        But if we used a combiner function on the map output before passing it to
+          the reducer, we could send this input instead:
+
+          # First map output (after combiner)
+          (1950, 20)
+
+          # Second map output (after combiner)
+          (1950, 25)
+
+          # Input to reduce function
+          (1950, [20, 25])
+
+
+    - Note that not all function have this property.  For instance, we would not be
+        able to calculate the mean this way.  But when we can use it, it can cut down
+        on the shuffling between the map and reduce functions.
+
+
 
 - Specifying a Combiner Function
+
+    - We can specify the combiner class just like the mapper and reducer.
+
+        public class MaxTemperatureWithCombiner {
+            public static void main (String args[]) throws Exception {
+                ...
+                job.setMapperClass(MaxTemperatureMapper.class);
+                job.setCombinerClass(MaxTemperatureReducer.class);
+                job.setReducerClass(MaxTemperatureReducer.class);
+                ...
+            }
+        }
+
 
 
 - Hadoop Streaming
