@@ -1,0 +1,88 @@
+-----------------------------------------------------------------------
+|  CHAPTER 3 - HDFS                                                   |
+-----------------------------------------------------------------------
+
+- Design of HDFS
+
+    - HDFS is designed for 
+
+        - Storing very large files
+        - Streaming data access (write-once, read many times)
+        - Commodity hardware
+
+
+    - HDFS is not well suited for
+
+        - Low-latency data access
+        - Lots of small files (NameNode holds all metadata in memory)
+        - Multiple writers or arbitrary file modifications
+
+
+
+- HDFS Blocks
+
+    - A disk has a block size, the minimum amount it can read or write at a time (usually 
+        512 bytes).  Filesystems build on this by dealing with data in blocks.  In a typical
+        filesystem, blocks are a few KB (4 KB for ext4).
+
+
+    - HDFS uses 128 MB blocks by default.  Unlike with regular filesystems, files are not
+        required to encompass entire blocks (a 1 MB file in a 128 MB block only uses 1 MB).
+        HDFS blocks are large to minimize the cost of seeks.
+
+
+    - Using a block abstraction in a distributed filesystem has several benefits:
+
+        1. A file can be larger than any single disk in the network.
+
+        2. It makes keeping track of metadata simpler, since all blocks are the same size.
+
+        3. It makes replication simpler.
+
+
+    - Like it's disk filesystem cousin, HDFS's 'fsck' command understands blocks.
+
+        # List the blocks that make up each file in the filesystem
+        $ hdfs fsck / -files -blocks
+
+
+
+- NameNodes and DataNodes
+
+    - An HDFS cluster has 2 types of nodes operating in a master-worker pattern:
+
+        1. A NameNode
+
+             - Manages the filesystem namespace
+             - Maintains the tree and metadata for all files and directories
+             - Stored persistenly on the local disk in both the namespace image and edit log
+             - Knows which DataNodes the blocks for each file are located on
+             - Does not store DataNodes information persistently, constructs this at startup
+
+
+        2. DataNodes
+
+             - Workhorses of the filesystem
+             - Store and retrieve blocks
+             - Report back to the NameNode periodically with the list of blocks they are storing 
+
+
+    - A client accesses the filesystem on behalf of the user by communicating with the NameNode
+        and DataNodes.  The client presents an interface similar to POSIX.
+
+
+    - The NameNode must be resistant to failure, since there would be no way to reconstruct
+        the files on the filesystem without it.  There are 2 methods for this:
+
+        1. Back up the files that make up the persistent state of the filesystem metadata.
+             Hadoop can be configured so that the NameNode writes its persistent state to
+             multiple filesystems.  These writes are synchronous and atomic.  Usually, it
+             is written both locally and to an NFS mount.
+
+        2. Run a secondary NameNode.  It does not actually act as a NameNode.  Its main role is
+             to periodically merge the namespace image with the edit log to prevent the edit 
+             log from becoming too large.  It runs on a separate machine, as it required lots
+             of CPU and as much memory as the main NameNode.
+
+           It keeps a copy of the merged namespace image, which can be used if the main NameNode
+             fails.  However, it lags the primary, so data loss is almost certain in a failure.

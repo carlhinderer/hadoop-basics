@@ -116,7 +116,7 @@
         Coordinating these processes in a large-scale distributed system is a challenge.
 
 
-    - MapReduce uses a shared-nothing architecture to spare programmers from having to thing 
+    - MapReduce uses a shared-nothing architecture to spare programmers from having to think
         about failure conditions.
 
 

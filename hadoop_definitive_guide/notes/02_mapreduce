@@ -244,6 +244,11 @@
         $ jar -cvf MaxTemperature.jar .
 
 
+    - We can view the contents of the JAR if we want to.
+
+        $ jar tf MaxTemperature.jar
+
+
     - Now, we can run our job.
 
         $ /usr/local/hadoop/bin/hadoop jar MaxTemperature.jar MaxTemperature ../../../data/weather output
@@ -402,7 +407,7 @@
 
         STDIN.each_line do |line|
           val = line
-          year, temp, q =val[15,4], val[87,5], val[92,1]
+          year, temp, q = val[15,4], val[87,5], val[92,1]
           puts "#{year}\t#{temp}" if (temp != "+9999" && q =~ /[01459]/)
         end
 
