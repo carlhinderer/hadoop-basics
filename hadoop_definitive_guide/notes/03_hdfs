@@ -499,14 +499,42 @@
 
 - PathFilter
 
+    - If we need something more powerful than file globbing operators, we can use full
+        regexes to find files:
+
+        public class RegexExcludePathFilter implements PathFilter {
+            private final String regex;
+        
+            public RegexExcludePathFilter (String regex) {
+                this.regex = regex;
+            }
+        
+            public boolean accept (Pathpath) {
+                return!path.toString().matches(regex);
+            }
+        }
+
+
 
 - Deleting Data
+
+    - The 'delete()' method on 'FileSystem' can be used to permanently delete files or
+        folders.
+
+        public boolean delete (Path f, boolean recursive) throws IOException
+
 
 
 - Data Flow - File Read
 
 
+- Network Topology and Hadoop
+
+
 - Data Flow - File Write
+
+
+- Replica Placement
 
 
 - Coherency Model
