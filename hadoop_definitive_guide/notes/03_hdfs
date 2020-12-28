@@ -188,7 +188,7 @@
 
     - In pseudo-distributed mode, we use the following settings:
 
-        # File: core-site.xml
+        # File: /etc/hadoop/core-site.xml
         -----------------------------------------
         fs.defaultFS = hdfs://localhost/
         dfs.replication = 1
@@ -284,16 +284,72 @@
 
 - Interfaces
 
+    - Hadoop is written in Java, so most Hadoop filesystem interactions are mediated through
+        the Java API.  However, there are several other filesystem interfaces.
+
+
     - HTTP
+
+        The WebHDFS protocol exposes a REST API to make it easier for other languages to
+          interact with HDFS.  Either web servers are embedded on the NameNodes and DataNodes
+          or a proxy server is used in between clients and the nodes.
+
 
     - C
 
+        The C 'libhdfs' library works similarly to the Java library.  However, the Java 
+          library often gets new features first. 
+
+        
     - NFS
+
+        It is possible to mount HDFS on a local client's filesystem using NFSv3.  Then
+          you can use standard Unix utilities to interact with the filesystem.
+
 
     - FUSE
 
+        'FileSystem in Userspace' allows systems that are implemented in user space to be
+          integrated into Unix filesystems.  Hadoop's FUSE-DFS module allows HDFS to be
+          mounted as a standard local filesystem.
+
+
 
 - The Java Interface - Reading Data from a Hadoop URL
+
+    - We have to do some work to make Java recognize Hadoops 'hdfs' URL scheme.  This is
+        achieved by calling the 'setURLStreamHandlerFactory()' method on a URL with an
+        instance of 'URLStreamHandlerFactory'.  This method can only be called once per JVM,
+        so it is usually a static method.
+
+
+    - This program displays output from Hadoop filesystems on standard output, similar to the
+        Unix cat command.
+
+        public class URLCat {
+
+            static {
+                URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory());
+            }
+        
+            public static void main (String args[]) {
+                InputStream in = null;
+        
+                try {
+                    in = new URL(args[0]).openStream();
+                    IOUtils.copyBytes(in, System.out, 4096, false);
+                }
+                finally {
+                    IOUtils.closeStream(in);
+                }
+            }
+        }
+
+
+    - To run it:
+
+        $ hadoop URLCat hdfs://localhost/user/tom/quangle.txt
+
 
 
 - Reading Data Using the FileSystem API
