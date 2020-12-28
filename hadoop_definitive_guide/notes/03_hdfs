@@ -527,14 +527,102 @@
 
 - Data Flow - File Read
 
+    - This describes the steps when a client reads a file from HDFS
+
+        1.  The HDFS client calls 'open()' on the 'FileSystem' object, which is an instance of
+              'DistributedFileSystem' in the case of HDFS.
+
+        2a. The 'DistributedFileSystem' object calls the NameNode using RPCs to get the block
+              locations for the file.  All the locations of the blocks are returned, sorted by
+              proximity to the client.  
+
+        2b. The 'DistributedFileSystem' returns an 'FSDataInputStream' (an input stream that 
+              supports seeks) to the client to read data from.
+
+        3.  The client calls 'read()' on the 'FSDataInputStream' which connects to the first
+              DataNode for the first block.  
+
+        4.  Data is streamed back to the client, which calls 'read()' repeatedly on the stream.
+
+        5.  When the end of the block is reached, 'DFSInputStream' will close the connection to 
+              the DataNode, then find the best DataNode for the next block.  This happens 
+              transparently to the client, which from its point of view is just reading a 
+              continuous stream.  Blocks are read in order.
+
+        6.  When the client has finished reading, it calls close() on the 'FSDataInputStream'.
+
+
 
 - Network Topology and Hadoop
+
+    - Hadoop chooses nodes based on their distance from each other, based on bandwidth.  It
+        assumes that bandwidth becomes less at each of these stages:
+
+        1. Processes on the same node
+
+        2. Different nodes on the same rack
+
+        3. Nodes on different racks in the same data center
+
+        4. Nodes in different data centers
+
 
 
 - Data Flow - File Write
 
+    - This describes the steps when a client writes a file to HDFS:
+
+        1.   The client creates the file by calling 'create()' on 'DistributedFileSystem'. 
+
+        2a.  DistributedFileSystem makes an RPC call to the NameNode to create a new file in the 
+               filesystem’s namespace, with no blocks associated with it.  The NameNode checks
+               that the file doesn't already exist and the client has the right permissions.
+
+        2b.  The DistributedFileSystem returns an FSDataOutputStream for the client to start writing 
+               data to. Just as in the read case, FSDataOutputStream wraps a DFSOutputStream, which 
+               handles communication with the DataNodes and NameNode.
+
+        3.   As the client writes data, the DFSOutputStream splits it into packets, which it writes to 
+               an internal queue called the data queue. The data queue is consumed by the DataStreamer, 
+               which is responsible for asking the NameNode to allocate new blocks by picking a list of 
+               suitable DataNodes to store the replicas. The list of DataNodes forms a pipeline, and 
+               here we’ll assume the replication level is three, so there are three nodes in the pipeline.
+
+        4.   The DataStreamer streams the packets to the first DataNode in the pipeline, which stores 
+               each packet and forwards it to the second DataNode in the pipeline. Similarly,the second 
+               DataNode stores the packet and forwards it to the third (and last) DataNode in the pipeline.
+
+        5.   The DFSOutputStream also maintains an internal queue of packets that are waiting to be
+               acknowledged by DataNodes, called the ack queue. A packet is removed from the ack queue
+               only when it has been acknowledged by all the DataNodes in the pipeline.  If any nodes
+               fail during writing, the failed node is removed from the pipeline and another node is
+               added.
+
+        6.   When the client has finished writing data, it calls close() on the stream.
+
+        7.   This action flushes all the remaining packets to the DataNode pipeline and waits for
+               acknowledgments before contacting the NameNode to signal that the file is complete.
+
+
 
 - Replica Placement
+
+    - There is a tradeoff between reliability and read/write bandwidth.  
+
+
+    - For instance, putting all the replicas on a single node would provide the fastest writes, but
+        would give you no reliability if a single node fails.  Putting all the replicas on the same
+        rack would still give you fast writes, but if the rack fails, you won't have reliability.
+
+
+    - On the other hand, putting each of your replicas in different datacenters will give you 
+        maximum reliability, but it will make writing slow.
+
+
+    - Hadoop's default strategy is to place the first replica on the same node as the client.
+        The second replica is placed on a different rack, chosen at random.  The third replica
+        is placed on a different node on the same rack as the second.
+
 
 
 - Coherency Model
