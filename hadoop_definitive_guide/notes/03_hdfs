@@ -86,3 +86,167 @@
 
            It keeps a copy of the merged namespace image, which can be used if the main NameNode
              fails.  However, it lags the primary, so data loss is almost certain in a failure.
+
+
+
+- Block Caching
+
+    - Normally a datanode reads blocks from disk, but for frequently accessed files the blocks may 
+        be explicitly cached in the DataNode’s memory, in an off-heap 'block cache'.
+
+
+    - By default, a block is cached in only one DataNode’s memory, although the number is 
+        configurable on a per-file basis.  Job schedulers (ie MapReduce, Spark) can take advantage 
+        of cached blocks by running tasks on the DataNode where a block is cached.  A small lookup table 
+        used in a join is a good candidate for caching, for example.  
+
+
+    - Users or applications instruct the NameNode which files to cache (and for how long) by adding a 
+        cache directive to a cache pool. Cache pools are an administrative grouping for managing cache 
+        permissions and resource usage.
+
+
+
+- HDFS Federation
+
+    - HDFS Federation allows a cluster to scale by adding NameNodes, each of which manages 
+        a portion of the filesystem namespace.  Under federation, each NameNode manages a
+        namespace volume and block pool.
+
+
+    - Namespace volumes are independent of each other, which means NameNodes do not communicate
+        with each other.
+
+
+
+- HDFS High Availability
+
+    - Replicating NameNode metadata on multiple filesystems and using a secondary NameNode
+        protects against data loss, but does not provide high availability of the filesystem.
+        
+      The NameNode is still a single point of failure, and if it fails the entire Hadoop
+        cluster is out of service until a new NameNode is online.
+
+
+    - To recover from a failed NameNode, an admin starts a new primary NameNode with one of
+        the filesystem metadata replicas.  The new NameNode then needs to:
+
+        1. Load the namespace image into memory
+
+        2. Replay the edit log
+
+        3. Receive enough block reports from DataNodes to leave safe mode
+
+      In large clusters, this may be 30 minutes of more.
+
+
+    - This is also a problem in routine maintenance, which occurs much more often than node
+        failure.
+
+
+    - Hadoop 2 remedied this by adding HDFS HA.  In this implementation, there is a pair of 
+        NameNodes in an active-standby configuration.  
+
+      If the primary fails, the standby takes over without significant interruption.  A few
+        architectural changes are required for this:
+
+        1. The NameNodes must use highly available shared storage to share the edit log.
+
+        2. DataNodes must send block reports to both NameNodes, since the block mappings are
+             stored in memory.
+
+        3. Clients must be configured to handle NameNode failover.
+
+        4. The Secondary NameNode is removed in favor of the Standby NameNode.
+
+
+    - There are 2 choices available for the highly available shared storage for the edit log:
+
+        1. An NFS Filer
+
+        2. A Quorum Journal Manager
+
+
+
+- Failover and Fencing
+
+    - The transition from the active NameNode to the standby is managed by a 'failover controller'.
+        By default, ZooKeeper is used.  It ensures only one NameNode is active at a time.
+
+
+    - Failover may be initiated manually by an admin or automatically if a failure is detected.
+        If a failover is detected, the HA implementation ensures that the previously active 
+        NameNode doesn't do any damage.  This is known as 'fencing'.
+
+
+    - Tactics for fencing range from setting up an SSH command to kill a NameNode process to 
+        using a specialized PSU that can be cut off.
+
+
+
+- Basic Filesystem Operations
+
+
+- Hadoop Filesystems
+
+
+- Interfaces
+
+    - HTTP
+
+    - C
+
+    - NFS
+
+    - FUSE
+
+
+- The Java Interface - Reading Data from a Hadoop URL
+
+
+- Reading Data Using the FileSystem API
+
+
+- FSDataInputStream
+
+
+- Writing Data
+
+
+- FSDataOutputStream
+
+
+- Directories
+
+
+- Querying Data - File metadata and FileStatus
+
+
+- Listing Files
+
+
+- File Patterns
+
+
+- PathFilter
+
+
+- Deleting Data
+
+
+- Data Flow - File Read
+
+
+- Data Flow - File Write
+
+
+- Coherency Model
+
+
+- Consequences for Application Design
+
+
+- Parallel Copying with distcp
+
+
+- Keeping an HDFS Cluster Balanced
