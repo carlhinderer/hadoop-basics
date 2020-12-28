@@ -1,0 +1,86 @@
+-----------------------------------------------------------------------
+|  CHAPTER 4 - YARN                                                   |
+-----------------------------------------------------------------------
+
+- YARN Applications
+
+    - Here is a simplified hierarcy of Hadoop components:
+
+        Pig       Hive      Crunch              HIGHER-LEVEL APPLICATIONS
+        ---------------------------------
+        MapReduce    Spark    Tez               APPLICATIONS
+        ---------------------------------
+        YARN                                    COMPUTE
+        ---------------------------------
+        HDFS    HBase                           STORAGE
+
+
+    - YARN provides its services via 2 types of long-running daemons:
+
+        1. A Resource Manager (1 per cluster)
+
+             Manages use of resources across the cluster
+
+        2. Node Managers (runing on each node)
+
+             Lanuch and monitor containers
+
+
+    - To run an application on YARN:
+
+        1. A client contacts the Resource Manager and asks it to run an 'Application Master' 
+             process.
+
+        2. The Resource Manager then finds a Node Manager that can launch the application master 
+             in a container.
+
+           Precisely what the Application Master does depends on the application.  It could simply
+             run a computation and return the result to the client.  
+
+        3. Or, it could request more containers from Resource Managers.
+
+        4. And use the conatiners to run a distributed computation.
+
+
+    - YARN has a flexible model for making container requests.  A request can set the amount of CPU
+        and memory required for each container, and can also set locality constraints.
+
+
+
+- Scheduling in YARN
+
+    - The YARN scheduler allocates resources to applications based on some kind of defined
+        policy.  There are 3 schedulers available in YARN:
+
+        1. FIFO
+        2. Capacity
+        3. Fair Scheduler
+
+
+    - The FIFO Scheduler places applications in a queue and runs them in order of submission.
+        This is simple, but is not suitable for shared clusters, since one big job will hog
+        all of the resources.
+
+
+    - With the Capacity Scheduler, a separate queue for small jobs allows small jobs to start
+        as soon as they are submitted.  This does make large jobs take longer to complete.
+        This can also be used to create separate queues for separate organizations sharing a
+        cluster.
+
+
+    - The Fair Scheduler balances all of the jobs so that each one uses its fair share of
+        resources.  This allows for both high cluster utilization and timely small job
+        completion.
+
+
+    - The Capacity Scheduler is the default it most distributions. However some Hadoop 
+        distributions, like CDH, use the Fair Scheduler as the default. 
+
+
+    - A 'preeemption' option can be turned on, which will allow containters to be killed
+        so that other jobs can be run.  This will decrease the overall efficiency of the
+        cluster, however, since the killed containers will have to be re-run later.
+
+
+    - Every Node Manager in a YARN cluster periodically sends a heartbeat request back to
+        the Resource Manager (every second by default).
