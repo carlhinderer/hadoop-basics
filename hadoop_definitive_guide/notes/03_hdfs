@@ -446,6 +446,13 @@
 
 - Querying Data - File metadata and FileStatus
 
+    - The 'FileStatus' class encapsulates filesystem metadata for files and directories, 
+        including file length, block size, replication, modification time, ownership, and 
+        permission information.
+
+
+    - An example testing this class is located at 'code/ch03/ShowFileStatusTest.java'.
+
 
 - Listing Files
 
