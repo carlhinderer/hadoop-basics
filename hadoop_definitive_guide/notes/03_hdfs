@@ -354,6 +354,33 @@
 
 - Reading Data Using the FileSystem API
 
+    - Sometimes, it is impossible to set a 'URLStreamHandlerFactory' in your application,
+        for instance if you have set it somewhere else.  In this case, you will need to use
+        the 'FileSystem' API to open an input stream for a file.
+
+
+    - Here is a program that dispalys files from a Hadoop filesystem on standard output by
+        using the 'FileSystem' directly:
+
+        public class FileSystemCat {
+    
+            public static void main(String[]args) throws Exception {
+                String uri = args[0];
+                Configuration conf = new Configuration();
+                FileSystem fs = FileSystem.get(URI.create(uri),conf);
+                InputStream in = null;
+        
+                try {
+                    in = fs.open(newPath(uri));
+                    IOUtils.copyBytes(in,System.out,4096,false);
+                }
+                finally {
+                    IOUtils.closeStream(in);
+                }
+            }
+        }
+
+
 
 - FSDataInputStream
 
