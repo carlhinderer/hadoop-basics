@@ -381,8 +381,43 @@
         }
 
 
+    - To run it:
+
+        $ hadoop FileSystemCat hdfs://localhost/user/tom/quangle.txt
+
+
 
 - FSDataInputStream
+
+    - The 'open()' method on a 'FileSystem' returns an 'FSDataInputStream' rather than a
+        standard 'java.io' class.  It has support for random access, so you can read from
+        any part of the stream.
+
+        public class FileSystemDoubleCat {
+    
+            public static void main(String[]args) throws Exception {
+                String uri = args[0];
+                Configuration conf = new Configuration();
+                FileSystem fs = FileSystem.get(URI.create(uri),conf);
+                FSDataInputStreamin=null;
+        
+                try {
+                    in = fs.open(newPath(uri));
+                    IOUtils.copyBytes(in,System.out,4096,false);
+                    in.seek(0);  // go back to the start of the file
+                    IOUtils.copyBytes(in,System.out,4096,false);
+                }
+                finally {
+                    IOUtils.closeStream(in);
+                }
+            }
+        }
+
+
+    - To run it:
+
+        $ hadoop FileSystemDoubleCat hdfs://localhost/user/tom/quangle.txt
+
 
 
 - Writing Data
