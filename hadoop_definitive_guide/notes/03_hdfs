@@ -627,11 +627,69 @@
 
 - Coherency Model
 
+    - A coherency model for a filesystem describes the data visibility of reads and writes
+        for a file.  HDFS trades off some POSIX requirements for performance.
+
+
+    - After creating a file, it is visible in the filesystem namespace.
+
+        Path p = new Path("p");
+        fs.create(p);
+        assertThat(fs.exists(p), is(true));
+
+
+    - However, any content written to the file is not guaranteed to be visible, even if the
+        stream is flushed.  So, the file appears to have a length of zero.
+
+        Path p = new Path("p");
+        OutputStream out = fs.create(p);
+        out.write("content".getBytes("UTF-8"));
+        out.flush();
+        assertThat(fs.getFileStatus(p).getLen(), is(0L));
+
+
+    - Once more than a block's worth of data has been written, the first block will be visible
+        to new readers.  This is true of subsequent blocks also.
+
+
+    - The 'hflush()' method can be used to force buffers to be flushed, making all writes up to
+        that point in the file visible to readers.
+
+        Path p = new Path("p");
+        FSDataOutputStream out = fs.create(p);
+        out.write("content".getBytes("UTF-8"));
+        out.hflush();
+        assertThat(fs.getFileStatus(p).getLen(), is(((long)"content".length())));
+
+
 
 - Consequences for Application Design
+
+    - This coherency model has implications for how applications are designed.  With no calls
+        to 'hflush()' or 'hsync()', you should be prepared to lose a block of data in the event
+        of client or system failure.
+
+
+    - This is unacceptable in many applications, so 'hflush()' should be called at suitable 
+        points after a certain number of bytes have been written.
+
 
 
 - Parallel Copying with distcp
 
+    - All of the reads and writes we've done up to this point have been single-threaded.
+        Hadoop also comes with the 'distcp' utility for copying data to and from Hadoop
+        filesystems in parallel.
 
-- Keeping an HDFS Cluster Balanced
+        # Copy one file to another
+        $ hadoop distcp file1 file2
+
+        # Copy one directory to another
+        $ hadoop distcp dir1 dir2
+
+        # Synchronize changes in dir1 to dir2
+        $ hadoop distcp -update dir1 dir2
+
+
+        # Transfer data between 2 HDFS clusters
+        $ hadoop distcp -update -delete -p hdfs://namenode1/foo hdfs://namenode2/foo
