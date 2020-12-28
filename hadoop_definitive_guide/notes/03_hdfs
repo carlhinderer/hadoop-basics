@@ -454,10 +454,47 @@
     - An example testing this class is located at 'code/ch03/ShowFileStatusTest.java'.
 
 
+
 - Listing Files
+
+    - You can use the FileSystem's 'listStatus' method to list the files in a directory.
+
+        public class ListStatus {
+
+            public static void main(String[]args) throws Exception {
+                String uri = args[0];
+                Configuration conf = new Configuration();
+                FileSystem fs = FileSystem.get(URI.create(uri), conf);
+        
+                Path[] paths = new Path[args.length];
+                for (int i = 0; i<paths.length; i++) {
+                    paths[i] = new Path(args[i]);
+                }
+        
+                FileStatus[] status = fs.listStatus(paths);
+                Path[] listedPaths = FileUtil.stat2Paths(status);
+                for (Path p : listedPaths) {
+                    System.out.println(p);
+                }
+            }
+        }
+
+
+    - We can use this program to find the union of directory listings for a collection of 
+        paths.
+
+        $ hadoop ListStatus hdfs://localhost/ hdfs://localhost/user/tom
+
 
 
 - File Patterns
+
+    - We can use file globbing to find files using the 'globStatus' methods:
+
+        public FileStatus[] globStatus (Path pathPattern) throws IOException
+
+        public FileStatus[] globStatus (Path pathPattern, PathFilter filter) throws IOException
+
 
 
 - PathFilter
