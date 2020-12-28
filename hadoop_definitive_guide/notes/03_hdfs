@@ -186,8 +186,100 @@
 
 - Basic Filesystem Operations
 
+    - In pseudo-distributed mode, we use the following settings:
+
+        # File: core-site.xml
+        -----------------------------------------
+        fs.defaultFS = hdfs://localhost/
+        dfs.replication = 1
+
+
+    - Getting help:
+
+        $ hadoop fs -help
+
+
+    - Copying files:
+
+        # Copy a file from the local filesystem to HDFS
+        $ hadoop fs -copyFromLocal input/docs/quangle.txt hdfs://localhost/user/tom/quangle.txt
+
+        # Can omit the hdfs://localhost since its in config
+        $ hadoop fs -copyFromLocal input/docs/quangle.txt /user/tom/quangle.tx
+
+        # Can also omit HDFS home directory
+        $ hadoop fs -copyFromLocal input/docs/quangle.txt quangle.txt
+
+
+        # Copy file back to local filesystem
+        $ hadoop fs -copyToLocal quangle.txt quangle.copy.txt
+
+        # Verify files are the same
+        $ md5 input/docs/quangle.txt quangle.copy.txt
+
+
+    - Creating directories:
+
+        # Create a directory
+        $ hadoop fs -mkdir books
+
+        # View directory contents
+        $ hadoop fs -ls .
+
+
 
 - Hadoop Filesystems
+
+    - Hadoop has an abstract notion of filesystems, of which HDFS is just one implementation.
+        The Java abstract class org.apache.hadoop.fs.FileSystem represents the client interface
+        to a filesystem in Hadoop, and there are several concrete implementations.
+
+
+    - Here are the main ones that ship with Hadoop:
+
+        Filesystem   URIscheme    Java implementation            Description
+                                  (all under org.apache.hadoop)
+        --------------------------------------------------------------------------------------------
+        Local        file         fs.LocalFileSystem             A filesystem for a locally connected
+                                                                   disk with client-side checksums. Use 
+                                                                   RawLocalFileSystem for a localfilesystem 
+                                                                   with no checksums.
+
+        HDFS         hdfs         hdfs.DistributedFileSystem    Hadoop’s distributed filesystem. HDFS is
+                                                                  designed to work efficiently in conjunction
+                                                                  with MapReduce.
+
+        WebHDFS      webhdfs      hdfs.web.WebHdfsFileSystem    A filesystem providing authenticated 
+                                                                  read/write access to HDFS over HTTP.
+
+        SecureWebHDFS swebhdfs    hdfs.web.SWebHdfsFileSystem   The HTTPS version of WebHDFS.
+
+        HAR          har          fs.HarFileSystem              A filesystem layered on another filesystem 
+                                                                  for archiving files. Hadoop Archives are 
+                                                                  used for packing lots offiles in HDFS into 
+                                                                  a single archive file to reduce the 
+                                                                  namenode’s memory usage. Use the hadoop
+                                                                  'archive' command to create HAR files.
+
+        View         viewfs       viewfs.ViewFileSystem         A client-side mount table for other Hadoop
+                                                                  filesystems. Commonly used to create mount
+                                                                  points for federated NameNodes .
+
+        FTP          ftp          fs.ftp.FTPFileSystem          A filesystem backed by an FTP server.
+
+        S3           s3a          fs.s3a.S3AFileSystem          A filesystem backed by Amazon S3.
+
+        Azure        wasb         fs.azure.NativeAzure          A filesystem backed by Microsoft Azure.
+                                    .FileSystem
+
+        Swift        swift        fs.swift.snative              A filesystem backed by OpenStackSwift.
+                                    .SwiftNativeFileSystem
+
+
+    - To list the files in the root directory of the local filesystem:
+
+        $ hadoop fs -ls file:///
+
 
 
 - Interfaces
