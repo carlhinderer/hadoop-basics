@@ -1,0 +1,127 @@
+-----------------------------------------------------------------------
+|  CHAPTER 5 - HADOOP I/O                                             |
+-----------------------------------------------------------------------
+
+- Data Integrity
+
+    - Data Integrity in HDFS
+
+    - LocalFileSystem
+
+    - ChecksumFileSystem
+
+
+
+- Compression
+
+    - Codecs
+
+    - Compressing and Decompressing Streams with CompressionCodec
+
+    - Inferring CompressionCodecs using CompressionCodecFactory
+
+    - Native Libraries
+
+    - Codec Pool
+
+
+
+- Compression and Input Splits
+
+
+
+- Using Copression in MapReduce
+
+    - Compressing Map Output
+
+
+
+- Serialization
+
+
+
+- The Writable Interface
+
+
+
+- WritableComparable and Comparators
+
+
+
+- Writable Classes
+
+    - Writable Wrappers for Java Primitives
+
+    - Text
+
+    - Indexing
+
+    - Unicode
+
+    - Iteration
+
+    - Mutability
+
+    - Resorting to String
+
+    - BytesWritable
+
+    - NullWritable
+
+    - ObjectWritable and GenericWritable
+
+    - Writable Collections
+
+
+
+- Implementing a Custom Writable
+
+
+
+- Implementing a RawComparator for Speed
+
+
+
+- Custom Comparators
+
+
+
+- Serialization Frameworks
+
+    - Serialization IDL
+
+
+
+- File-Based Data Structures
+
+    - SequenceFile
+
+
+
+- Writing a SequenceFile
+
+
+
+- Reading a SequenceFile
+
+
+
+- Displaying a SequenceFile with the Command-Line Interface
+
+
+
+- Sorting and Merging SequenceFiles
+
+
+
+- The SequenceFile Format
+
+
+
+- MapFile
+
+    - MapFile Variants
+
+
+
+- Other File Formats and Column-Oriented Formats

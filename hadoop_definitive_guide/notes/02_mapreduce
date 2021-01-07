@@ -235,7 +235,7 @@
 
     - Next, we compile our code against that classpath.
 
-        $ cd code/ch01/java
+        $ cd code/ch02/java
         $ javac -classpath ${HADOOP_CLASSPATH} *
 
 

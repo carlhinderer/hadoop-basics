@@ -13,7 +13,7 @@ public class MaxTemperatureReducer
 
         int maxValue = Integer.MIN_VALUE;
         for (IntWritable value : values){
-            maxValue = Math.max(maxValue,value.get());
+            maxValue = Math.max(maxValue, value.get());
         }
 
         context.write(key, new IntWritable(maxValue));
