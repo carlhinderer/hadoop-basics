@@ -212,7 +212,28 @@
 
 - Using Copression in MapReduce
 
-    - Compressing Map Output
+    - If your input files are compressed, they will be automatically decompressed when they
+        are read by MapReduce.
+
+
+    - To compress the output of a MapReduce job, set:
+
+        mapreduce.output.fileoutputformat.compress = true
+        mapreduce.output.fileoutputformat.compress.codec = "codecClassName"
+
+
+    - An example of compressing the output of a MapReduce job is located at 
+        '/code/ch05/MaxTemperatureWithCompression.java'.
+
+      To run it:
+
+        $ hadoop MaxTemperatureWithCompression.jar MaxTemperatureWithCompression \
+            ../../data/weather output
+
+
+
+
+- Compressing Map Output
 
 
 
