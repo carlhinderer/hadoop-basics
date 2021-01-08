@@ -137,6 +137,17 @@
 
 - Inferring CompressionCodecs using CompressionCodecFactory
 
+    - If you are reading a compressed file, normally you can infer which codec to use by
+        looking at the file extension.  The 'CompressionCodecFactory' has a way to infer
+        the codec using the 'getCodec()' method.
+
+
+    - We have an example of a file decompressor at '/code/ch05/FileDecompressor.java'.
+
+      To run it:
+
+        $ hadoop FileDecompressor.jar FileDecompressor ../../weather/1901.gz
+
 
 
 - Native Libraries
