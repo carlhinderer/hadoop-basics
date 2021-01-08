@@ -108,6 +108,31 @@
 
 - Compressing and Decompressing Streams with CompressionCodec
 
+    - 'CompressionCodec' has 2 methods that allow you to easily compress and decompress data.
+
+        createOutputStream (OutputStream out)
+        createInputStream (InputStream in)
+
+
+    - We have an example of a program that compresses data read from standard input and writes
+        it to standard output in 'code/ch05/StreamCompressor.java'.
+
+      To run it:
+
+        # Compile the StreamProcessor
+        $ javac -classpath ${HADOOP_CLASSPATH} *
+
+        # Build the jar
+        $ jar -cvf StreamProcessor.jar
+
+        # Run the StreamProcessor
+        $ echo "Text" \
+          | hadoop jar StreamProcessor.jar StreamCompressor org.apache.hadoop.io.compress.GzipCodec \
+          | gunzip -
+
+        # Output
+        Text
+
 
 
 - Inferring CompressionCodecs using CompressionCodecFactory
@@ -123,6 +148,10 @@
 
 
 - Compression and Input Splits
+
+
+
+- Which Compression Format Should Be Used?
 
 
 
