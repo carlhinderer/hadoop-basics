@@ -4,25 +4,121 @@
 
 - Data Integrity
 
+    - Because we process so much data, the chance of data corruption happening somewhere is
+        high.  Typically, we use checksums (like CRC-32) to ensure data is not corrupted.
+
+
     - Data Integrity in HDFS
+
+        - HDFS transparently checkums all data written to it, and by default verifies checksums
+            when reading data.  It uses CRC-32C, which has a 4-byte checksum for each 512 bytes.
+
+
+        - DataNodes are responsible for verifying the data they receive before storing the data
+            and its checksum.  This applies to data they receive from clients and from other
+            DataNodes during replication.
+
+
+        - When clients read from DataNodes, they verify checksums as well.
+
+
+        - Each DataNode also runs a 'DataBlockScanner' in a background thread that periodically
+            verifies all the blocks stored on the DataNode.  If it finds a corruption, it can
+            heal using replicated data on another node.
+
+
+        - It is possible to disable You can find a file's checksum using:
+
+            $ hadoop fs -checksum fileName
+            verification of checksums by using 'setVerifyChecksum(false)'
+            before using 'open()' to read a file.
+
+
+        - You can find a file's checksum using:
+
+            $ hadoop fs -checksum fileName
+
 
     - LocalFileSystem
 
-    - ChecksumFileSystem
+        - The 'HadoopLocalFileSystem' performs client-side checksumming.  When you write a file
+            'filename', a hidden file 'filename.crc' is added in the same directory that keeps
+            checksums for each 512-byte block in the file.
+
+
+        - Checksums are verified when a file is read.  If an error is detected, a 
+            'ChecksumException' is thrown.
+
+
+        - Although the performance penalty is not that big, you might still want to avoid it
+            by disabling checksumming.  To do this globally:
+
+            Configuation conf = ...
+            FileSystem fs = new RawLocalFileSystem();
+            fs.initialize(fs, conf);
+
+
+        - 'LocalFileSystem' uses 'ChecksumFileSystem', which is just a wrapper around
+            'FileSystem.'
 
 
 
 - Compression
 
+    - Compessing files reduces the space needed to store files and the bandwidth used to
+        send them across a network or to/from disk.  Here are the most commonly used formats
+        in Hadoop:
+
+        Compression format     Tool     Algorithm     Filename extension     Splittable?
+        -------------------------------------------------------------------------------------
+        DEFLATE                N/A      DEFLATE       .deflate               No
+        gzip                   gzip     DEFLATE       .gz                    No
+        bzip2                  bzip2    bzip2         .bz2                   Yes
+        LZO                    lzop     LZO           .lzo                   No
+        LZ4                    N/A      LZ4           .lz4                   No
+        Snappy                 N/A      Snappy        .snappy                No
+
+
+    - The different algorithms have different characteristics:
+
+        - gzip is in the middle of the space/time trade-off
+        - bzip2 compresses more effectively, but is slower
+        - LZO, LZ4, and Snappy are optimized for speed
+
+
     - Codecs
 
-    - Compressing and Decompressing Streams with CompressionCodec
+        - In Hadoop, a codec is represented by an implementation of the 'CompressionCodec'
+            interface.
 
-    - Inferring CompressionCodecs using CompressionCodecFactory
+            Compression format     Hadoop CompressionCodec
+            ----------------------------------------------------------------------
+            DEFLATE                org.apache.hadoop.io.compress.DefaultCodec
+            gzip                   org.apache.hadoop.io.compress.GzipCodec
+            bzip2                  org.apache.hadoop.io.compress.BZip2Codec
+            LZO                    com.hadoop.compression.lzo.LzopCodec
+            LZ4                    org.apache.hadoop.io.compress.Lz4Codec
+            Snappy                 org.apache.hadoop.io.compress.SnappyCodec
 
-    - Native Libraries
 
-    - Codec Pool
+        - The LZO codecs are GPL licensed and cannot be included in Apache distributions, 
+            so they must be downloaded separately.
+
+
+
+- Compressing and Decompressing Streams with CompressionCodec
+
+
+
+- Inferring CompressionCodecs using CompressionCodecFactory
+
+
+
+- Native Libraries
+
+
+
+- Codec Pool
 
 
 

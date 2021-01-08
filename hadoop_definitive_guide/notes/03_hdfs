@@ -137,7 +137,7 @@
 
         3. Receive enough block reports from DataNodes to leave safe mode
 
-      In large clusters, this may be 30 minutes of more.
+      In large clusters, this may be 30 minutes or more.
 
 
     - This is also a problem in routine maintenance, which occurs much more often than node
@@ -399,7 +399,7 @@
                 String uri = args[0];
                 Configuration conf = new Configuration();
                 FileSystem fs = FileSystem.get(URI.create(uri),conf);
-                FSDataInputStreamin=null;
+                FSDataInputStreamin = null;
         
                 try {
                     in = fs.open(newPath(uri));
@@ -428,7 +428,7 @@
     
             public static void main(String[]args) throws Exception {
                 String localSrc = args[0];
-                String dst=args[1];
+                String dst = args[1];
                 InputStream in = new BufferedInputStream(newFileInputStream(localSrc));
                 Configuration conf = new Configuration();
                 FileSystem fs = FileSystem.get(URI.create(dst),conf);
@@ -510,7 +510,7 @@
             }
         
             public boolean accept (Pathpath) {
-                return!path.toString().matches(regex);
+                return !path.toString().matches(regex);
             }
         }
 
