@@ -152,17 +152,61 @@
 
 - Native Libraries
 
+    - For performance, it is preferable to use a native library for compression and 
+        decompression.  For example, in one test, decompression time was reduced by 
+        50% (decompression) and 10% (compression) when using the native gzip library instead
+        of the Java implementation.
+
+
+    - The Apache Hadoop binary tarball includes a set of prebuilt native compression binaries
+        called 'libhadoop.so'.  Hadoop will look in these native libraries first when picking
+        a codec to use.
+
 
 
 - Codec Pool
+
+    - If you are using a native library and doing a lot of compression and decompression,
+        you can use a 'CodecPool' to reuse the compressors, amortizing the cost of creating the
+        objects.
+
+
+    - An example of this is located in '/code/ch05/PooledStreamCompressor.java'.
 
 
 
 - Compression and Input Splits
 
+    - If a file is compressed using a codec that is not splittable, HDFS will not be able
+        to split the file into 128-MB blocks.  MapReduce will handle the single block correctly,
+        but won't be able to parallelize the processing.
+
+
+    - The bzip2 codec does support splitting, so it is a good choice for compression of very large
+        files.
+
 
 
 - Which Compression Format Should Be Used?
+
+    - Since Hadoop applications use large datasets, we should strive to take advantage of 
+        compression.  Which method to use depends on file size, format, and the processing
+        tools we are using.
+
+
+    - Here are some suggestions, arranged from most to least effective in general:
+
+        1. Use a container file format such as sequence files, Avro, ORC, or Parquet.  All of
+             these support compression and splitting.  A fast compressor such as LZO, LZ4, or
+             Snappy is generally a good choice.
+
+        2. Use a compression format that supports splitting, such as bzip2.  Or use one that can
+             be indexed to support splitting such as LZO.
+
+        3. Split the file into chunks in the application, and compress each chunk separately using
+             any supported compression format.
+
+        4. Store the files uncompressed.
 
 
 
