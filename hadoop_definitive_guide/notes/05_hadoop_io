@@ -427,17 +427,108 @@
 
     - Iteration
 
+        - Iterating over the Unicode characters in Text is complicated by the use of byte offsets 
+            for indexing, since you can’t just increment the index.  The idiom for iteration is a 
+            little obscure:
+
+            public class TextIterator { 
+
+                public static void main(String[]args) {
+                    Text t = new Text("\u0041\u00DF\u6771\uD801\uDC00");
+                
+                    ByteBuffer buf = ByteBuffer.wrap(t.getBytes(), 0, t.getLength());
+                    int cp;
+
+                    while (buf.hasRemaining() && (cp = Text.bytesToCodePoint(buf)) != -1) {
+                        System.out.println(Integer.toHexString(cp));
+                    }
+                }
+            }
+
+
     - Mutability
+
+        - Another difference from Java Strings is that Text is mutable, like all other Writable
+            types.
+
+            Text t = new Text("hadoop");
+            t.set("pig");
+
+            assertThat(t.getLength(), is(3));
+            assertThat(t.getBytes().length, is(3));
+
 
     - Resorting to String
 
+        - Since Text doesn't have the rich API that Strings have, often the easiest way to do
+            some processing is to just convert it to a String.
+
+            assertThat(newText("hadoop").toString(), is("hadoop"));
+
+
     - BytesWritable
+
+        - 'BytesWritable' is a wrapper for an array of binary data.  Its serialized format is a 
+            4-byte integer field that specifies the number of bytes to follow, followed by the 
+            bytes themselves.
+
+            BytesWritable b = new BytesWritable(new byte[]{3,5});
+            byte[] bytes = serialize(b);
+
+            assertThat(StringUtils.byteToHexString(bytes), is("000000020305"));
+
+
+        - BytesWritable is mutable, and its value may be changed by calling its 'set()' method.
+
+            b.setCapacity(11);
+
+            assertThat(b.getLength(), is(2));
+            assertThat(b.getBytes().length, is(11));
+
 
     - NullWritable
 
+        - 'NullWritable' is a special type of Writable, as it has a zero-length serialization. 
+            No bytesare written to or read from the stream. 
+
+          It is used as a placeholder.
+
+
     - ObjectWritable and GenericWritable
 
+        - 'ObjectWritable' is a general-purpose wrapper for the following: Java primitives, 
+            String, enum, Writable, null, or arrays of any of these types. It is used in Hadoop 
+            RPC to marshal and unmarshal method arguments and return types.
+
+          It is useful when a field can be more than one type.
+
+
+        - 'GenericWritable' is useful when the number of types is small and known ahead of time.
+
+
     - Writable Collections
+
+        - The 'org.apache.hadoop.io' package includes six Writable collection types:
+
+            - ArrayWritable
+            - ArrayPrimitiveWritable
+            - TwoDArrayWritable
+            - MapWritable
+            - SortedMapWritable
+            - EnumSetWritable
+
+
+        - Here is an example of using 'MapWritable':
+
+            MapWritable src =new MapWritable();
+            src.put(newIntWritable(1), new Text("cat"));
+            src.put(newVIntWritable(2), new LongWritable(163));
+
+            MapWritable dest = new MapWritable();
+            WritableUtils.cloneInto(dest, src);
+
+            assertThat((Text)dest.get(newIntWritable(1)), is(newText("cat")));
+            assertThat((LongWritable)dest.get(newVIntWritable(2)), is(newLongWritable(163)));
 
 
 
