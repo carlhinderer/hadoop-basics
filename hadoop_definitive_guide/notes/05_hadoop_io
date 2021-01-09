@@ -534,13 +534,30 @@
 
 - Implementing a Custom Writable
 
+    - The built-in 'Writable' implementations serve most purposes, but on occasion you may need
+        to write your own custom implementation.
+
+
+    - An example of a custom Writable implementation is at '/code/ch05/TextPair.java'.
+
 
 
 - Implementing a RawComparator for Speed
 
+    - There is one further optimization we can make to our 'TextPair' class.  Right now, if we
+        use 'TextPair' as a key in MapReduce, it will have to be deserialized into an object
+        for the 'compareTo' method to be invoked.  
+
+
+    - We want to compare 2 TextPair objects just by looking at their serialized representations.
+        We can do this by leveraging the Text type's 'RawComparator'.  An example of this is
+        implemented in the Comparator class in '/code/ch05/TextPair.java'.
+
 
 
 - Custom Comparators
+
+    - 
 
 
 
