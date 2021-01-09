@@ -355,11 +355,75 @@
 
     - Writable Wrappers for Java Primitives
 
+        - There are Writable wrappers for all the Java primitives:
+
+            Java primitive     Writable implementation     Serialized size (bytes)
+            --------------------------------------------------------------------------
+            boolean            BooleanWritable             1
+            byte               ByteWritable                1
+            short              ShortWritable               2
+            int                IntWritable                 4
+                               VIntWritable                1–5
+            float              FloatWritable               4
+            long               LongWritable                8
+                               VLongWritable               1–9
+            double             DoubleWritable              8
+
+
     - Text
+
+        - 'Text' is a Writable for UTF-8 sequences.  It is the Writable equivalent of 'String'.
+            It has a maximum value size of 2 GB, since it's length is stored in an
+
 
     - Indexing
 
+        - Indexing for the 'Text' class is in terms of the encoded byte sequence, not in terms
+            of the Unicode character as with Strings.  For ASCII strings, these are the same.
+
+            // Text's charAt() returns a Unicode code point, not a character
+            Text t = new Text("Hadoop");
+            assertThat(t.getLength(), is(6));
+            assertThat(t.charAt(2), is((int) 'd'));
+
+
     - Unicode
+
+        - When we start using characters that are encoded with more than a single byte, the
+            differences between 'Text' and 'String' become clear.  For example:
+
+            Unicode codepoint     U+0041          U+00DF           U+6771            U+10400
+            -----------------------------------------------------------------------------------------
+            Name                  LATIN CAPITAL   LATIN SMALL      N/A               DESERET CAPITAL
+                                  LETTER A        LETTER SHARP S   (Han ideograph)   LETTER LONG I
+            -----------------------------------------------------------------------------------------
+            UTF-8 code units      41              c3 9f            e6 9d b1          f0 90 90 80
+            -----------------------------------------------------------------------------------------
+            Java representation   \u0041          \u00DF           \u6771            \uD801\uDC00
+
+
+        - We have a full set of junit tests that show the difference between Text and String types
+            at '/code/ch05/StringTextComparisonTest'.
+
+
+        - To run this, 
+        
+            1. Install JUnit by downloading the 'junit' and 'hamcrest' and add them to a directory
+                 like /usr/local/juint.
+
+            2. Create environment variables so that the junit jars will be in the classpath.
+
+                 .bashrc
+                 -----------------------------------
+                 export JUNIT_HOME="/usr/local/junit"
+                 export JUNIT_CLASSPATH=$JUNIT_HOME/junit-4-13.1.jar:$JUNIT_HOME/hamcrest-core-1.3.jar
+
+                 export HADOOP_CLASSPATH=$(/usr/local/hadoop/bin/hadoop classpath):$JUNIT_CLASSPATH
+
+            3. When you run the tests, you also need your current directory in the path.
+
+                java -cp .:${HADOOP_CLASSPATH} org.junit.runner.JUnitCore StringTextComparisonTest
+
 
     - Iteration
 
