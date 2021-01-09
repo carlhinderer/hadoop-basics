@@ -309,6 +309,46 @@
 
 - WritableComparable and Comparators
 
+    - 'IntWritable' implements the 'WritableComparable' interface, which is a subinterface of the
+        'Writable' and 'java.lang.Comparable' interfaces:
+
+        package org.apache.hadoop.io;
+
+        public interface WritableComparable<T> extends Writable, Comparable<T> {
+        }
+
+
+    - Comparison of types is crucial for MapReduce, where there is a sorting phase where keys are
+        compared to each other.  One optimization Hadoop provides is the 'RawComparator' extension
+        of Java's 'Comparator':
+
+        package org.apache.hadoop.io;
+
+        import java.util.Comparator;
+
+        public interface RawComparator<T> extends Comparator<T> {
+            public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2);
+        }
+
+      This interface permits implementors to compare records read from a stream without deserializing
+        them into objects.
+
+
+    - 'WritableComparator' is a general-purpose implementation of 'RawComparator'.
+
+        // Get Comparator
+        RawComparator<IntWritable> comparator = WritableComparator.get(IntWritable.class);
+
+        // Compare 2 IntWritables
+        IntWritable w1 = new IntWritable(163);
+        IntWritable w2 = new IntWritable(67);
+        assertThat(comparator.compare(w1, w2), greaterThan(0));
+
+        // Compare the serialized representations of 2 IntWritables
+        byte[] b1 = serialize(w1);
+        byte[] b2 = serialize(w2);
+        assertThat(comparator.compare(b1, 0, b1.length, b2, 0, b2.length),greaterThan(0));
+
 
 
 - Writable Classes
