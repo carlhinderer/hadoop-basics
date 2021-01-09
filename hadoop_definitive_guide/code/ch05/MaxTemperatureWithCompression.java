@@ -9,9 +9,9 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class MaxTemperatureWithCompression {
 
-    public static void main(String[]args) throws Exception {
+    public static void main(String[] args) throws Exception {
         if (args.length!=2) {
-            System.err.println("Usage: MaxTemperatureWithCompression <input path> "+"<output path>");
+            System.err.println("Usage: MaxTemperatureWithCompression <input path> " + "<output path>");
             System.exit(-1);
         }
 

@@ -232,16 +232,78 @@
 
 
 
-
 - Compressing Map Output
+
+    - Even if your MapReduce application reads and writes uncompressed data, it may benefit 
+        from compressing the intermediate output of the map phase.  Using a fast codec like
+        LZO, LZ4, or Snappy will reduce the amount of data transferred across the network 
+        during the shuffle.
+
+
+    - To enable gzip compression for the map output, we can add this to the configuration:
+
+        Configuration conf = new Configuration();
+        conf.setBoolean(Job.MAP_OUTPUT_COMPRESS,true);
+        conf.setClass(Job.MAP_OUTPUT_COMPRESS_CODEC, GzipCodec.class, CompressionCodec.class);
+
+        Job job = new Job(conf);
 
 
 
 - Serialization
 
+    - Serialization is used in 2 quite distinct areas of distributed data processing:
+
+        1. Interprocess communication (RPC calls)
+        2. Persistent storage
+
+
+    - In general, it is desirable that an RPC serialization format is:
+
+        1. Compact
+        2. Fast
+        3. Extensible
+        4. Interoperable
+
+      It turns out that a persistent storage serialization format has the same requirements.
+
+
+    - Hadoop uses its own serialization format, 'Writables', which is certainly compact and fast.
+        However, it is not easy to extend or use with languages other than Java.
+
 
 
 - The Writable Interface
+
+    - The 'Writable' interface defines 2 methods:
+
+        package org.apache.hadoop.io;
+
+        import java.io.DataOutput;
+        import java.io.DataInput;
+        import java.io.IOException;
+
+        public interface Writable { 
+            void write (DataOutputout) throws IOException;
+            void readFields (DataInputin) throws IOException;
+        }
+
+
+    - We can create a Writable.  For instance, an 'IntWritable' is a wrapper for a Java int.
+
+        // Create Writable and set value
+        IntWritable writable = new IntWritable();
+        writable.set(163);
+
+        // Create and set value at construction time
+        IntWritable writable = new IntWritable(163);
+
+
+    - An example of serializing a writable is located in the 'serialize()' method in 
+        '/code/ch05/SerializerDeserializer.java'.
+
+      An example of deserializing a writable in located in the 'deserialize()' method in
+        '/code/ch05/SerializerDeserializer.java'.
 
 
 
