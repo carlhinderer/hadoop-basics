@@ -1,0 +1,104 @@
+-----------------------------------------------------------------------
+|  CHAPTER 6 - DEVELOPING A MAPREDUCE APPLICATION                     |
+-----------------------------------------------------------------------
+
+- Process of MapReduce Development
+
+    1. Write your map and reduce functions, ideally with unit tests to make sure they
+         do what you expect.
+
+    2. Write a driver program to run a job and run it locally using a small subset of
+         data to check that it is working.  When it is working, you can expand your
+         unit tests to cover the entire map-reduce process.
+
+    3. Next, run it on the cluster.  This is likely to expose more issues, which we can
+         fix as before, expanding the tests as we go along.  Debugging is more difficult
+         on a cluster, but we can use common techniques to make it easier.
+
+    4. After the program is working, we may want to do some tuning, first by running
+         through standard checks, then by doing task profiling.  Profiling distributed
+         programs is not easy, but Hadoop has hooks to aid in the process.
+
+
+
+- The Configuration API
+
+    - An instance of the 'Configuration' class (in 'org.apache.hadoop.conf') represents the
+        collection of config properties and their values.
+
+      Configurations read their properties from 'resources', XML files with a simple structure
+        for defining name/value pairs.
+
+
+    - Here is a sample config file, 'configuration-1.xml':
+
+        <?xml version="1.0"?>
+        <configuration>
+            <property>
+                <name>color</name>
+                <value>yellow</value>
+                <description>Color</description>
+            </property>
+
+            <property>
+                <name>size</name>
+                <value>10</value>
+                <description>Size</description>
+            </property>
+
+            <property>
+                <name>weight</name>
+                <value>heavy</value>
+                <final>true</final>
+                <description>Weight</description>
+            </property>
+
+            <property>
+                <name>size-weight</name>
+                <value>${size},${weight}</value>
+                <description>Size and weight</description>
+            </property>
+        </configuration>
+
+
+    - We can access the properties in code like this:
+
+        Configuration conf = new Configuration();
+        conf.addResource("configuration-1.xml");
+
+        assertThat(conf.get("color"), is("yellow"));
+        assertThat(conf.getInt("size", 0), is(10));
+        assertThat(conf.get("breadth", "wide"), is("wide"));
+
+
+
+- Combining Resources
+
+    - More than one resource can be used to define a Configuration.  The default properties for
+        the system are defined in 'core-default.xml'.  Site-specific overrides are defined in
+        'core-site.xml'.
+
+
+    - Resources are added to a Configuration in order:
+
+        Configuration conf = new Configuration();
+        conf.addResource("configuration-1.xml");
+        conf.addResource("configuration-2.xml");
+
+
+    - Properties marked 'final' cannot be overridden in later configurations.  An attempt to
+        override it will throw a configuration error.
+
+
+
+- Variable Expansion
+
+    - Config properties can be defined in terms of other properties.
+
+        <property>
+            <name>size-weight</name>
+            <value>${size},${weight}</value>
+            <description>Size and weight</description>
+        </property>
+
+        assertThat(conf.get("size-weight"), is("12,heavy"));
