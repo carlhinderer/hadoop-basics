@@ -620,21 +620,80 @@
         $ java -cp .:${HADOOP_CLASSPATH} SequenceFileReadDemo numbers.seq
 
 
+
 - Displaying a SequenceFile with the Command-Line Interface
+
+    - The 'hadoop fs' command has a '-text' option that will display sequence files in textual
+        form.
+
+        $ hadoop fs -text numbers.seq | head
 
 
 
 - Sorting and Merging SequenceFiles
 
+    - The most powerful to sort and merge one or more SequenceFiles is to use MapReduce.
+
+        $ $HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-*.jar \  
+            sort -r 1 \  
+            -inFormat org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat \  
+            -outFormat org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat \  
+            -outKey org.apache.hadoop.io.IntWritable \  
+            -outValue org.apache.hadoop.io.Text \  
+            numbers.seq sorted
+
+        $ hadoop fs -text sorted/part-r-00000 | head
+
 
 
 - The SequenceFile Format
+
+    - Each SequenceFile starts with a header with these fields:
+
+        SequenceFile Common Header
+
+          version - 3 bytes of magic header 'SEQ', 1 byte of version no. (e.g. SEQ4 or SEQ6)
+          keyClassName - String
+          valueClassName - String
+          compression - A boolean which specifies if compression is turned on
+          blockCompression - A boolean which specifies if block compression is turned on
+          compressor class - The classname of the CompressionCodec (if compression is enabled)
+          metadata - SequenceFile.Metadata for this file (key/value pairs)
+          sync - A sync marker to denote end of the header.
+
+
+    - The format of the entire file looks like:
+
+        Header
+        Record
+            > Record length
+            > Key length
+            > Key
+            > (Compressed?) Value
+        A sync-marker every few k bytes or so.
+
+
+    - The sync marker permits seeking to a random point in a file and then re-synchronizing input 
+        with record boundaries. This is required to be able to efficiently split large files for 
+        MapReduce processing.
 
 
 
 - MapFile
 
-    - MapFile Variants
+    - A 'MapFile' is a sorted SequenceFile with an index to permit lookups by key.  The index
+        itself is a SequenceFile that contains a fraction of the keys in the map (every 128th key
+        by default).
+
+      The idea is that the index can be loaded into memory to provide fast lookups from the main
+        data file.
+
+
+    - Hadoop comes with a few variants on the general key-value MapFile interface:
+
+        - SetFile = stores a set of 'Writable' keys, which must be in sorted order
+        - ArrayFile = key is an integer representing the index of the element in the array
+        - BloomMapFile = uses Bloom filter to test if a key is in the map in sparse datasets
 
 
 
