@@ -5,7 +5,6 @@ import org.apache.hadoop.conf.*;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.fs.Path;
 
 
 public class SequenceFileWriteDemo {

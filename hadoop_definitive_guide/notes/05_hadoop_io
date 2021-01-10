@@ -609,6 +609,15 @@
 
 - Reading a SequenceFile
 
+    - To read a SequenceFile, we just need to create an instance of 'SequenceFile.Reader' and
+        iterate over its records using 'next()'.
+
+
+    - An example is located at 'SequenceFileReadDemo.java'.
+
+      To run it:
+
+        $ java -cp .:${HADOOP_CLASSPATH} SequenceFileReadDemo numbers.seq
 
 
 - Displaying a SequenceFile with the Command-Line Interface
