@@ -130,3 +130,33 @@
 
         # Run in pseudodistributed mode on localhost
         $ hadoop fs -conf conf/hadoop-localhost.xml -ls .
+
+
+
+- GenericOptionsParser, Tool, and ToolRunner
+
+    - Hadoop comes with a few helper classes for making it easier to run jobs from the command
+        line.  'GenericOptionsParser' is a class that interprets common Hadoop command-line
+        options and sets them on a 'Configuration' object for your application to use.
+
+      You don't usually use 'GenericOptionsParser' directly, as it's more convenient to
+        implement the 'Tool' interface and run your application with 'ToolRunner'.
+
+
+    - We have an example located at '/code/ch06/src/main/java/ConfigurationPrinter.java'.
+
+      To compile and run it:
+
+        # Compile and build JAR
+        $ mvn clean compile package
+
+        # Run the JAR
+        $ hadoop jar hadoop-testProject.jar ConfigurationPrinter -conf ../conf/hadoop-localhost.xml
+
+
+        # Get the value of a particular property
+        $ hadoop ConfigurationPrinter -conf conf/hadoop-localhost.xml \  
+            | grep yarn.resourcemanager.address=
+
+        # Set the value of a particular property
+        $ hadoop ConfigurationPrinter -D color=yellow | grep color

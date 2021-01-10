@@ -25,3 +25,6 @@ hs_err_pid*
 
 # Hadoop output
 output/
+
+# Maven artifacts
+target/

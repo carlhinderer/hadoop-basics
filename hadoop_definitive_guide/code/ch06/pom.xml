@@ -2,7 +2,8 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.hadoopbook</groupId>
     <artifactId>hadoop-book-mr-dev</artifactId>
-    <version>4.0</version>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -43,7 +44,7 @@
     </dependencies>
 
     <build>
-        <finalName>hadoop-examples</finalName>
+        <finalName>hadoop-testproject</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
