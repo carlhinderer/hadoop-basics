@@ -160,3 +160,9 @@
 
         # Set the value of a particular property
         $ hadoop ConfigurationPrinter -D color=yellow | grep color
+
+
+
+- Writing a Unit Test with MRUnit
+
+    - 
