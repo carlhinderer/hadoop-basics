@@ -557,23 +557,53 @@
 
 - Custom Comparators
 
-    - 
+    - Custom comparators implement a different sort order from the natural sort order defined
+        by the default comparator.
+
+
+    - For instance, we could create a custom comparator, 'FirstComparator', that compares only
+        the first byte in a 'Text' object instead of comparing the entire string.
 
 
 
 - Serialization Frameworks
 
-    - Serialization IDL
+    - Although most MapReduce programs use 'Writable' key and value types, this isn't mandated.
+        Actually, any type can be used.
+
+      To support this, Hadoop has an API for pluggable serialization frameworks.  A 'Serialization'
+        defines a mapping from types to 'Serializer' interfaces (objects to byte streams) and
+        'Deserializer' interfaces (byte streams to objects).
 
 
 
-- File-Based Data Structures
+- SequenceFiles
 
-    - SequenceFile
+    - For some applications, a specialized data structure is needed to hold your data.  For doing
+        MapReduce-based programming, putting each blob of data into its own file doesn't scale,
+        so Hadoop developed a number of higher-level containers for these situations.
+
+
+    - In a logfile where each line is a record, and the records are binary types, Hadoop's
+        'SequenceFile' is a good solution.  It is a persistent data structure for binary key-value
+        pairs.
+
+      To use it as a logfile format, you would choose a key (such as a LongWritable timestamp) and
+        the value would be a 'Writable'.
 
 
 
 - Writing a SequenceFile
+
+    - To create a 'SequenceFile', the 'createWriter()' method is used.  It returns a 
+        'SequenceFile.Writer' instance.
+
+
+    - An example is located at '/code/ch05/SequenceFileWriteDemo.java'.
+
+      To create a new SequenceFile, 'numbers.seq':
+
+        $ java -cp .:${HADOOP_CLASSPATH} SequenceFileWriteDemo numbers.seq
 
 
 
