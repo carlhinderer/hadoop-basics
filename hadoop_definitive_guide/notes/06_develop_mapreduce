@@ -108,4 +108,25 @@
 - Setting Up the Development Environment
 
     - First, we add a 'pom.xml'.
-    
+
+
+
+- Managing Configuration
+
+    - When developing Hadoop applications, it is common to switch between running the applcation
+        locally and in a cluster.  One way to accomodate this is to have Hadoop config files
+        containing the connection settings for each cluster you run against.
+
+
+    - For this book, we have a directory named 'conf' with 3 config files:
+
+        hadoop-local.xml
+        hadoop-localhost.xml
+        hadoop-cluster.xml
+
+
+    - With this setup, it is easy to use any configuration with the '-conf' command-line
+        switch.
+
+        # Run in pseudodistributed mode on localhost
+        $ hadoop fs -conf conf/hadoop-localhost.xml -ls .
