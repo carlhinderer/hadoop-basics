@@ -165,4 +165,12 @@
 
 - Writing a Unit Test with MRUnit
 
-    - 
+    - The map and reduce functions are easy to test in isolation due to their functional
+        style.  We use 'MRUnit', which works in conjunction with JUnit.
+
+
+    - First, we add 'NcdcRecordParser.java' and 'MapTemperatureMapper.java', which implement
+        the mapper.
+
+
+    - Then, we add unit tests to make sure they work as expected in 'MaxTemperatureMapperTest.java'.
