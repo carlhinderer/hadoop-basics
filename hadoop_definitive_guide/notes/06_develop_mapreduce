@@ -102,3 +102,10 @@
         </property>
 
         assertThat(conf.get("size-weight"), is("12,heavy"));
+
+
+
+- Setting Up the Development Environment
+
+    - First, we add a 'pom.xml'.
+    
