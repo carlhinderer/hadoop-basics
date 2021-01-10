@@ -698,3 +698,61 @@
 
 
 - Other File Formats and Column-Oriented Formats
+
+    - SequenceFiles are the oldest binary formats in Hadoop, but there are better alternatives
+        that should be considered for new projects.
+
+
+    - Avro datafiles are like SequenceFiles (compact and splittable) but are made to be portable 
+        across multiple languages.  Objects stored in Avro datafiles are described by a schema,
+        rather than in the Java code of the implementation of the 'Writable' object.
+
+      Avro files are widely supported in the Hadoop ecosystem, making them a good default choice
+        for a binary format.
+
+
+    - SequenceFiles, MapFiles, and Avro files are all row-oriented file formats.  In a 
+        column-oriented format, the rows in a file are broken up into row splits, then each split
+        is stored in a column-oriented fashion.
+
+        LOGICAL TABLE
+
+                Col1   Col2   Col3
+        -----------------------------
+        Row1 |   1      2      3
+        Row2 |   4      5      6
+        Row3 |   7      8      9
+        Row4 |   10     11     12
+
+
+        ROW-ORIENTED LAYOUT
+
+        1 2 3 4 5 6 7 8 9 10 11 12
+
+
+        COLUMN-ORIENTED LAYOUT (RCFile)
+
+        [Row Split 1]
+        1 4 2 5 3 6
+
+        [Row Split 2]
+        7 10 8 11 9 12
+
+
+    - A column-oriented layout permits columns that are not accessed in a query to be skipped.
+        In general, column-oriented queries work well when queries access only a small number
+        of columns in the table.
+
+      
+    - Column-oriented formats need more memory for reading and writing, since they have to 
+        buffer an entire row-split in memory rather than just a single row.
+
+      Column-oriented formats cannot be used for streaming writes, since the current file cannot
+        be recovered if the writer process fails.  This is why Flume uses row-oriented formats.
+
+
+    - Hive's 'RCFile' (Record Columnar File) was Hadoop's first columnar file format.  It has
+        since been replaced by Hive's 'ORCFile' (Optimized Record Columnar File).
+
+      'Parquet' is a genaral-purpose columnar-oriented file format based on Google's Dremel, and
+        it has wide support in Hadoop also.
