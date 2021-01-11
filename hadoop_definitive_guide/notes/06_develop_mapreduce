@@ -182,7 +182,7 @@
 
 
 
-- Running Locally on Test Data
+- Running a Job in a Local Job Runner
 
     - Now that we have the mapper and reducer working on controlled inputs, the next step is
         to write a job driver and run it on some test data on a development machine.
@@ -202,3 +202,40 @@
 
         $ hadoop jar hadoop-testproject.jar v4.MaxTemperatureDriver -conf ../conf/hadoop-local.xml \
             input/ncdc/micro output
+
+
+
+- Testing the Driver
+
+    - Implementing the 'Tool' interface also makes your code easier to test, since you can
+        inject an arbitrary Configuration.
+
+
+    - The first way to test the 'MaxTemperatureDriver' is to run the job against a test file
+        on the local filesystem.
+
+        @Test
+        public void test() throws Exception {
+            Configuration conf = new Configuration();
+            conf.set("fs.defaultFS", "file:///");
+            conf.set("mapreduce.framework.name", "local");
+            conf.setInt("mapreduce.task.io.sort.mb", 1);
+    
+            Path input = new Path("input/ncdc/micro");
+            Path output = new Path("output");
+    
+            FileSystem fs = FileSystem.getLocal(conf);
+            fs.delete(output, true); // delete old outputMaxTemperatureDriver
+    
+            MaxTemperatureDriver driver = new MaxTemperatureDriver();
+            driver.setConf(conf);
+    
+            int exitCode = driver.run(new String[] { input.toString(), output.toString()});
+    
+            assertThat(exitCode, is(0));
+            checkOutput(conf, output);
+        }
+
+
+    - The second way to test the driver is to use a 'mini-cluster'.  This approach is used widely
+        in Hadoop's own automated test suite.
