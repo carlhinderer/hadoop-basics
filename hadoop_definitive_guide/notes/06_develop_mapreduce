@@ -338,6 +338,88 @@
 
 - Debugging a Job
 
+    - Debugging a job with print statements doesn't scale well across a cluster.  So, we need
+        to be a little more creative.  Common techniques include:
+
+        - Logging anomalies to stderr
+        - Having a counter that counts implausible records to see how common they are
+
+
+    - If your program produces a lot of log data, you could either:
+
+        1. Rewrite your program to add this log data to the job output
+        2. Just produce logs and write a separate program to analyze them
+
+
+    - Here, we add some debugging logic to our mapper.  If the temperature is over 100 degrees
+        Celsius, we print a line to standard error, update the map's status message, and
+        increment a counter.
+
+        public class MaxTemperatureMapper 
+            extends Mapper<LongWritable, Text, Text, IntWritable> {
+          
+            enum Temperature {
+                OVER_100
+            }
+
+            private NcdcRecordParser parser = new NcdcRecordParser();
+
+            @Override
+            public void map (LongWritable key, Text value, Context context)
+                throws IOException, InterruptedException {
+
+                parser.parse(value);
+                if (parser.isValidTemperature()) {
+                    int airTemperature = parser.getAirTemperature();
+                    if (airTemperature > 1000) {
+                        System.err.println("Temperature over 100 degrees for input: " + value);
+                        context.setStatus("Detected possibly corrupt record: see logs.");
+                        context.getCounter(Temperature.OVER_100).increment(1);
+                    }
+                    context.write(new Text(parser.getYear()),new IntWritable(airTemperature));
+                }
+            }
+        }
+
+
+    - We can look at log line and counter values on the job page on the MapReduce web UI.
+
+
+    - When the job is finished, we can check the value of the counter:
+
+        $ mapred job -counter job_1410450250506_0006 'v4.MaxTemperatureMapper$Temperature' OVER_100
+        
+        # Output
+        3
+
+
+
+- Handling Malformed Data
+
+    - Capturing input data that causes a problem is valuable, since then you can use it in a
+        unit test.
+
+      Here is a test to check that our counter is being incremented correctly when bad records 
+        are encountered:
+
+        @Test public void parsesMalformedTemperature () 
+            throws IOException, InterruptedException {
+
+            String year = "0335999999433181957042302005+37950+139117SAO  +0004";
+            String temperature = "RJSN V02011359003150070356999999433201957010100005+353";
+            Text value = new Text(year + value);
+
+            Counters counters = new Counters();
+            new MapDriver<LongWritable, Text, Text, IntWritable>()
+                .withMapper(new MaxTemperatureMapper())
+                .withInput(new LongWritable(0), value)
+                .withCounters(counters).
+                runTest();
+
+            Counter c = counters.findCounter(MaxTemperatureMapper.Temperature.MALFORMED);
+            assertThat(c.getValue(), is(1L));
+
+
 
 - Hadoop Logs
 
