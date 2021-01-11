@@ -239,3 +239,137 @@
 
     - The second way to test the driver is to use a 'mini-cluster'.  This approach is used widely
         in Hadoop's own automated test suite.
+
+
+
+- Running on a Cluster - Packaging a Job
+
+    - Now that we're happy with how the program runs on a small test dataset, we are ready to try
+        it on a full dataset on a Hadoop cluster.
+
+      First, we need to package the job.
+
+
+    - The local job runner uses a single JVM to run a job, so as long as the classes needed to run
+        the job are on its classpath, things will just work.
+
+      In a distributed setting, things are more complex.  First, a job's classes must be packaged
+        into a 'job JAR file' to send to the cluster.   Hadoop will find the job JAR automatically by
+        searching for the JAR on the driver’s classpath that contains the class set in the
+        setJarByClass()method (on JobConf or Job).
+
+
+    - To create a job JAR file using Maven:
+
+        $ mvn package -DskipTests
+
+
+    - If you have a single job per JAR, you can specify the main class to run in the JAR's manifest.
+        Otherwise, you'll need to specify it on the command line.
+
+
+    - The user's client-side classpath set by 'hadoop jar' is made up of:
+
+        - The job JAR file
+        - Any JAR files in the lib directory of the job JAR file, and the classes directory
+        - The classpath defined by HADOOP_CLASSPATH, if set
+
+
+    - On a cluster, map and reduce tasks run in separate JVMs, their classpaths are not controlled
+        by 'HADOOP_CLASSPATH'.  
+
+
+    - To package any dependencies for a job, there are a few options:
+
+        1. Unpack the libraries and repackage them in the job JAR
+        2. Package the libraries in the 'lib' directory of the job JAR
+        3. Keep the libraries separate and add them to the classpath via 'HADOOP_CLASSPATH'
+
+
+
+- Launching a Job
+
+    - To launch a job, we need to run the driver, specifying the cluster that we want to run
+        the job on with the '-conf' option.
+
+        $ unset HADOOP_CLASSPATH
+
+        $ hadoop jar hadoop-examples.jar v4.MaxTemperatureDriver -conf conf/hadoop-cluster.xml \
+            input/ndcc/all max-temp
+
+
+
+- The MapReduce Web UI
+
+    - The MapReduce web UI is useful for following a job's progress while it is running, as well
+        as finding job statistics and logs after the job has completed.
+
+        http://resource-manager-host:8088/
+
+
+    - The 'Resource Manager' page shows you information about all the applications currently
+        running, the available resources, and information about Node Managers.
+
+
+    - The 'Job Page' for a specific page monitors the progress of a job.  It will show both map
+        and reduce progress.
+
+
+
+- Retrieving the Results
+
+    - Once a job is finished, there are various ways to retrieve the results.  Each reducer 
+        produces one output file, so there are 30 part files named 'part-r-00000' to 'part-r-00029'
+        in the 'max-temp' directory if there are 30 reducers.
+
+
+    - It is often useful to copy the output from HDFS to our development machine.  The '-getmerge'
+        option is usefulhere, as it will merge all the results files into a single file, then
+        put it on the local filesystem.
+
+        $ hadoop fs -getmerge max-temp max-temp-local
+
+
+    - Another way to look at the output is to print the output files to the console.
+
+        $ hadoop fs -cat max-temp/*
+
+
+
+- Debugging a Job
+
+
+- Hadoop Logs
+
+
+- Remote Debugging
+
+
+- Tuning a Job
+
+
+- Profiling Tasks
+
+
+- The HPROF Profiler
+
+
+- MapReduce Workflows
+
+
+- Decomposing a Problem into MapReduce Joins
+
+
+- JobControl
+
+
+- Apache Oozie
+
+
+- Defining an Oozie Workflow
+
+
+- Packaing and Deploying an Oozie Workflow Application
+
+
+- Running an Oozie Workflow Job
