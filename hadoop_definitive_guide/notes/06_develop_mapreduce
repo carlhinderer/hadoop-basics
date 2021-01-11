@@ -151,7 +151,7 @@
         $ mvn clean compile package
 
         # Run the JAR
-        $ hadoop jar hadoop-testProject.jar ConfigurationPrinter -conf ../conf/hadoop-localhost.xml
+        $ hadoop jar hadoop-testproject.jar ConfigurationPrinter -conf ../conf/hadoop-localhost.xml
 
 
         # Get the value of a particular property
@@ -174,3 +174,31 @@
 
 
     - Then, we add unit tests to make sure they work as expected in 'MaxTemperatureMapperTest.java'.
+
+        $ mvn test
+
+
+    - With those tests passing, we'll add the 'MaxTemperatureReducer' also.
+
+
+
+- Running Locally on Test Data
+
+    - Now that we have the mapper and reducer working on controlled inputs, the next step is
+        to write a job driver and run it on some test data on a development machine.
+
+      Using the 'Tool' interface introduced earlier in the chapter, it's easy to write a driver
+        to run our job.
+
+
+    - We add the driver in 'MaxTemperatureDriver.java', which implements the 'Tool' interface,
+        so we get the benefit of being able to set the options that 'GenericOptionsParser' 
+        supports.
+
+
+    - Now, we can run this application against some local files using the local job runner.
+
+        $ mvn compile package
+
+        $ hadoop jar hadoop-testproject.jar v4.MaxTemperatureDriver -conf ../conf/hadoop-local.xml \
+            input/ncdc/micro output
